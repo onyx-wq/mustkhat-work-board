@@ -15,13 +15,13 @@
 <body>
 <div class="card" id="result">
   <h1>요청을 보내는 중…</h1>
+  <p>잠시만 기다려 주세요.</p>
 </div>
 <script>
-// 액션 처리 뷰어: /board/action/?item=&v=&action=&sig= 링크로 들어온 POST 요청을 대신 실행한다.
+// 액션 처리 뷰어: /board/action/?item=&v=&action=&sig= 링크로 들어온 POST를 백엔드로 전달한다.
 (function () {
   'use strict';
   var BACKEND_ACTION = 'https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/team-reporting/board/action';
-  var BACKEND_VIEW = 'https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/team-reporting/board';
 
   function show(title, message, backUrl) {
     var card = document.getElementById('result');
@@ -55,7 +55,6 @@
     '&v=' + encodeURIComponent(viewer) +
     '&action=' + encodeURIComponent(action) +
     '&sig=' + encodeURIComponent(sig);
-  var backUrl = '/board/?v=' + encodeURIComponent(viewer) + '&sig=REBUILT';
 
   fetch(url, { method: 'POST', headers: { 'Accept': 'text/html' } })
     .then(function (res) {
@@ -63,15 +62,21 @@
       return res.text();
     })
     .then(function (html) {
-      // 백엔드 응답은 결과 안내 HTML이다. 제목·본문·돌아가기 링크를 발라 이 페이지에 표시한다.
       var doc = new DOMParser().parseFromString(html, 'text/html');
       var h1 = doc.querySelector('h1');
       var p = doc.querySelector('p');
       var back = doc.querySelector('a.back');
+      // 돌아가기 링크는 백엔드 절대 URL이므로 이 뷰어 경로로 되돌린다.
+      var backHref = back ? back.getAttribute('href') : null;
+      if (backHref) {
+        var marker = '/board?';
+        var at = backHref.indexOf(marker);
+        if (at >= 0) backHref = '../?' + backHref.slice(at + marker.length);
+      }
       show(
         h1 ? h1.textContent : '처리 결과를 확인하지 못했어요',
         p ? p.textContent : '',
-        back ? back.getAttribute('href') : null
+        backHref
       );
     })
     .catch(function () {
