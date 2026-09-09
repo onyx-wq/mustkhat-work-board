@@ -63,17 +63,14 @@
     root.querySelector('p').textContent = message;
   }
 
-  // 백엔드 절대 URL을 이 뷰어의 상대 경로로 되돌린다.
-  function rewrite(html) {
-    return html.split(BACKEND + '/action?').join('action/?');
-  }
-
   // 백엔드 보드 HTML의 <body> 내용만 발라 root에 넣는다 (스타일은 뷰어가 이미 갖고 있음).
+  // 폼 action의 백엔드 절대 URL은 그대로 둔다 — wireActions가 preventDefault 후
+  // 같은 URL로 fetch POST를 보내므로, 이동 자체는 일어나지 않는다.
   function render(html) {
-    var inner = rewrite(html);
-    var bodyStart = inner.indexOf('<body>');
-    var bodyEnd = inner.indexOf('</body>');
-    if (bodyStart >= 0 && bodyEnd > bodyStart) inner = inner.slice(bodyStart + 6, bodyEnd);
+    var bodyStart = html.indexOf('<body>');
+    var bodyEnd = html.indexOf('</body>');
+    var inner = html;
+    if (bodyStart >= 0 && bodyEnd > bodyStart) inner = html.slice(bodyStart + 6, bodyEnd);
     root.innerHTML = inner;
     wireActions(root);
   }
@@ -82,7 +79,7 @@
     var forms = scope.querySelectorAll('form[method="post"]');
     Array.prototype.forEach.call(forms, function (form) {
       var action = form.getAttribute('action') || '';
-      if (action.indexOf('action/?') !== 0) return;
+      if (action.indexOf(BACKEND + '/action?') !== 0) return; // 백엔드 액션 URL만 처리
       form.addEventListener('submit', function (event) {
         event.preventDefault();
         fetch(action, { method: 'POST', headers: { 'Accept': 'text/html' } })
