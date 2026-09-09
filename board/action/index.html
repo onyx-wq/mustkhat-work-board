@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>팀 업무 보드 — 처리 결과</title>
+<style>
+  body { font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif; background: #f7f7f8; margin: 0; display: flex; min-height: 100vh; align-items: center; justify-content: center; }
+  .card { background: #fff; border-radius: 16px; padding: 32px 36px; max-width: 420px; width: 90%; box-shadow: 0 2px 12px rgba(0,0,0,.08); text-align: center; }
+  h1 { font-size: 19px; margin: 0 0 10px; }
+  p { font-size: 15px; color: #555; margin: 0 0 6px; line-height: 1.6; }
+  a.back { display: inline-block; margin-top: 14px; font-size: 14px; font-weight: 600; color: #059669; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card" id="result">
+  <h1>요청을 보내는 중…</h1>
+</div>
+<script>
+// 액션 처리 뷰어: /board/action/?item=&v=&action=&sig= 링크로 들어온 POST 요청을 대신 실행한다.
+(function () {
+  'use strict';
+  var BACKEND_ACTION = 'https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/team-reporting/board/action';
+  var BACKEND_VIEW = 'https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/team-reporting/board';
+
+  function show(title, message, backUrl) {
+    var card = document.getElementById('result');
+    card.innerHTML = '';
+    var h1 = document.createElement('h1');
+    h1.textContent = title;
+    var p = document.createElement('p');
+    p.textContent = message;
+    card.appendChild(h1);
+    card.appendChild(p);
+    if (backUrl) {
+      var a = document.createElement('a');
+      a.className = 'back';
+      a.href = backUrl;
+      a.textContent = '← 업무 보드로 돌아가기';
+      card.appendChild(a);
+    }
+  }
+
+  var params = new URLSearchParams(location.search);
+  var item = params.get('item');
+  var viewer = params.get('v');
+  var action = params.get('action');
+  var sig = params.get('sig');
+  if (!item || !viewer || !action || !sig) {
+    show('요청이 올바르지 않아요', '슬랙의 보드 링크를 다시 열어 주세요.');
+    return;
+  }
+  var url = BACKEND_ACTION +
+    '?item=' + encodeURIComponent(item) +
+    '&v=' + encodeURIComponent(viewer) +
+    '&action=' + encodeURIComponent(action) +
+    '&sig=' + encodeURIComponent(sig);
+  var backUrl = '/board/?v=' + encodeURIComponent(viewer) + '&sig=REBUILT';
+
+  fetch(url, { method: 'POST', headers: { 'Accept': 'text/html' } })
+    .then(function (res) {
+      if (!res.ok) throw new Error('status ' + res.status);
+      return res.text();
+    })
+    .then(function (html) {
+      // 백엔드 응답은 결과 안내 HTML이다. 제목·본문·돌아가기 링크를 발라 이 페이지에 표시한다.
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var h1 = doc.querySelector('h1');
+      var p = doc.querySelector('p');
+      var back = doc.querySelector('a.back');
+      show(
+        h1 ? h1.textContent : '처리 결과를 확인하지 못했어요',
+        p ? p.textContent : '',
+        back ? back.getAttribute('href') : null
+      );
+    })
+    .catch(function () {
+      show('요청이 실패했어요', '잠시 후 다시 시도해 주세요.');
+    });
+})();
+</script>
+</body>
+</html>

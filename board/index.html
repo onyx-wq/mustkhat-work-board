@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>팀 업무 보드</title>
+<style>
+  body { font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif; background: #f7f7f8; margin: 0; padding: 24px; color: #171717; }
+  .status { max-width: 480px; margin: 48px auto; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 28px 32px; text-align: center; }
+  .status h1 { font-size: 17px; margin: 0 0 8px; }
+  .status p { font-size: 14px; color: #737373; margin: 0; line-height: 1.6; }
+  .status code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="status" id="status">
+  <h1>보드를 불러오는 중…</h1>
+  <p>잠시만 기다려 주세요.</p>
+</div>
+<script>
+// 팀 업무 보드 뷰어 (정적).
+// Supabase 기본 도메인이 HTML을 text/plain으로 강제하는 공식 제한 때문에
+// 이 페이지가 대신 화면을 제공한다. 데이터·권한은 기존 서명(v/sig) 검증을 그대로 쓴다.
+// 슬랙에서 받은 링크: https://mustkhat.github.io/board/?v=<viewerId>&sig=<signature>
+(function () {
+  'use strict';
+  var BACKEND = 'https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/team-reporting/board';
+  var ALLOWED_ORIGIN = location.origin;
+
+  function fail(title, message) {
+    document.getElementById('status').innerHTML =
+      '<h1></h1><p></p>';
+    var h1 = document.querySelector('#status h1');
+    var p = document.querySelector('#status p');
+    h1.textContent = title;
+    p.textContent = message;
+  }
+
+  // 링크 재작성: 백엔드 절대 URL → 이 Pages 내부 상대 경로
+  function rewrite(html) {
+    return html
+      .split(BACKEND + '/action?').join('action/?')
+      .split(BACKEND + '?').join('?');
+  }
+
+  // 액션 폼 제출을 fetch POST로 가로채 응답 화면을 이 페이지에 렌더한다.
+  function wireActions(root) {
+    var forms = root.querySelectorAll('form[method="post"]');
+    Array.prototype.forEach.call(forms, function (form) {
+      var action = form.getAttribute('action') || '';
+      if (action.indexOf(ALLOWED_ORIGIN) !== 0) return; // 우리 경로만
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var url = action.slice(ALLOWED_ORIGIN.length);
+        fetch(url, { method: 'POST', headers: { 'Accept': 'text/html' } })
+          .then(function (res) {
+            if (!res.ok) throw new Error('status ' + res.status);
+            return res.text();
+          })
+          .then(function (html) { render(html); })
+          .catch(function () {
+            fail('요청이 실패했어요', '잠시 후 다시 시도해 주세요. 슬랙의 보드 링크를 다시 열어도 됩니다.');
+          });
+      });
+    });
+  }
+
+  function render(html) {
+    document.open();
+    document.write(rewrite(html));
+    document.close();
+    wireActions(document);
+  }
+
+  var params = new URLSearchParams(location.search);
+  var viewer = params.get('v');
+  var sig = params.get('sig');
+  if (!viewer || !sig) {
+    fail('링크가 올바르지 않아요', '슬랙의 업무 보드 링크를 다시 열어 주세요.');
+    return;
+  }
+  var upstream = BACKEND + '?v=' + encodeURIComponent(viewer) + '&sig=' + encodeURIComponent(sig);
+  fetch(upstream, { headers: { 'Accept': 'text/html' } })
+    .then(function (res) {
+      if (res.status === 403 || res.status === 401) {
+        throw new Error('권한 없음');
+      }
+      if (!res.ok) throw new Error('status ' + res.status);
+      return res.text();
+    })
+    .then(function (html) {
+      if (html.indexOf('<!DOCTYPE html>') !== 0) {
+        throw new Error('응답 형식 오류');
+      }
+      render(html);
+    })
+    .catch(function (err) {
+      if (String(err.message) === '권한 없음') {
+        fail('권한이 없어요', '이 링크는 지정된 관리자만 사용할 수 있습니다.');
+      } else if (String(err.message) === '응답 형식 오류') {
+        fail('보드를 확인하지 못했어요', '링크가 만료되었을 수 있어요. 슬랙에서 보드 링크를 다시 받아 주세요.');
+      } else {
+        fail('보드를 불러오지 못했어요', '잠시 후 다시 시도해 주세요.');
+      }
+    });
+})();
+</script>
+</body>
+</html>
