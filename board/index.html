@@ -21,32 +21,45 @@
 // 팀 업무 보드 뷰어 (정적).
 // Supabase 기본 도메인이 HTML을 text/plain으로 강제하는 공식 제한 때문에
 // 이 페이지가 대신 화면을 제공한다. 데이터·권한은 기존 서명(v/sig) 검증을 그대로 쓴다.
-// 슬랙에서 받은 링크: https://onyx-wq.github.io/mustkhat-work-board/board/?v=<viewerId>&sig=<signature>
+// 설계: 뷰어 JS가 항상 남아 있고, 보드 HTML은 <div id="board-root"> 안에만 삽입한다.
+// document.write로 전체 문서를 갈아엎지 않아 이벤트 리스너가 유지된다.
 (function () {
   'use strict';
   var BACKEND = 'https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/team-reporting/board';
 
-  function fail(title, message) {
-    var card = document.getElementById('status');
-    if (!card) return;
-    card.innerHTML = '<h1></h1><p></p>';
-    card.querySelector('h1').textContent = title;
-    card.querySelector('p').textContent = message;
+  // 최초 로딩 화면을 실제 보드 컨테이너로 교체한다. 이후 모든 렌더는 이 안을 교체한다.
+  var root = document.createElement('div');
+  root.id = 'board-root';
+  document.body.innerHTML = '';
+  document.body.appendChild(root);
+
+  function showStatus(title, message) {
+    root.innerHTML = '<div class="status"><h1></h1><p></p></div>';
+    root.querySelector('h1').textContent = title;
+    root.querySelector('p').textContent = message;
   }
 
-  // 백엔드 절대 URL을 이 Pages의 상대 경로로 되돌린다.
-  // 액션 폼은 상대경로 'action/?…'가 되고, wireActions가 이를 fetch POST로 처리한다.
+  // 백엔드 절대 URL을 이 뷰어의 상대 경로로 되돌린다.
   function rewrite(html) {
     return html
-      .split(BACKEND + '/action?').join('action/?')
-      .split(BACKEND + '?').join('?');
+      .replace(/<style>[\s\S]*?<\/style>/, '')           // 뷰어가 이미 스타일을 갖고 있다
+      .split(BACKEND + '/action?').join('action/?')     // 폼 → 뷰어 상대경로 (wireActions가 fetch로 처리)
+      .split(BACKEND + '?').join('?');                  // (예비) 링크 → 뷰어
   }
 
-  function wireActions(root) {
-    var forms = root.querySelectorAll('form[method="post"]');
+  // 백엔드 보드 HTML에서 <style> 제거 후 head와 body 내용을 분리해 root에 삽입한다.
+  function render(html) {
+    var bodyStart = html.indexOf('<body>');
+    var bodyEnd = html.indexOf('</body>');
+    var inner = html.slice(bodyStart + 6, bodyEnd);
+    root.innerHTML = inner;
+    wireActions(root);
+  }
+
+  function wireActions(scope) {
+    var forms = scope.querySelectorAll('form[method="post"]');
     Array.prototype.forEach.call(forms, function (form) {
       var action = form.getAttribute('action') || '';
-      // rewrite 결과 상대경로 'action/?…'만 처리한다. 그 외에는 원래 제출을 그대로 둔다.
       if (action.indexOf('action/?') !== 0) return;
       form.addEventListener('submit', function (event) {
         event.preventDefault();
@@ -55,52 +68,72 @@
             if (!res.ok) throw new Error('status ' + res.status);
             return res.text();
           })
-          .then(function (html) { render(html); })
+          .then(function (resultHtml) { renderResult(resultHtml); })
           .catch(function () {
-            fail('요청이 실패했어요', '잠시 후 다시 시도해 주세요. 슬랙의 보드 링크를 다시 열어도 됩니다.');
+            showStatus('요청이 실패했어요', '잠시 후 다시 시도해 주세요.');
           });
       });
     });
   }
 
-  function render(html) {
-    document.open();
-    document.write(rewrite(html));
-    document.close();
-    wireActions(document);
+  // 액션 결과 화면(제목·본문·돌아가기)을 root에 표시한다.
+  function renderResult(html) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    var h1 = doc.querySelector('h1');
+    var p = doc.querySelector('p');
+    var back = doc.querySelector('a.back');
+    var card = document.createElement('div');
+    card.className = 'status';
+    card.innerHTML = '<h1></h1><p></p><p class="link"></p>';
+    card.querySelector('h1').textContent = h1 ? h1.textContent : '처리 결과를 확인하지 못했어요';
+    card.querySelector('p').textContent = p ? p.textContent : '';
+    var linkBox = card.querySelector('.link');
+    if (back) {
+      var a = document.createElement('a');
+      a.href = '#';
+      a.style.cssText = 'display:inline-block;margin-top:10px;font-size:14px;font-weight:600;color:#059669;text-decoration:none;cursor:pointer';
+      a.textContent = '← 업무 보드로 돌아가기';
+      a.addEventListener('click', function (event) {
+        event.preventDefault();
+        loadBoard();
+      });
+      linkBox.appendChild(a);
+    }
+    root.innerHTML = '';
+    root.appendChild(card);
   }
 
-  var params = new URLSearchParams(location.search);
-  var viewer = params.get('v');
-  var sig = params.get('sig');
-  if (!viewer || !sig) {
-    fail('링크가 올바르지 않아요', '슬랙의 업무 보드 링크를 다시 열어 주세요.');
-    return;
+  function loadBoard() {
+    var params = new URLSearchParams(location.search);
+    var viewer = params.get('v');
+    var sig = params.get('sig');
+    if (!viewer || !sig) {
+      showStatus('링크가 올바르지 않아요', '슬랙의 업무 보드 링크를 다시 열어 주세요.');
+      return;
+    }
+    var upstream = BACKEND + '?v=' + encodeURIComponent(viewer) + '&sig=' + encodeURIComponent(sig);
+    fetch(upstream, { headers: { 'Accept': 'text/html' } })
+      .then(function (res) {
+        if (res.status === 403 || res.status === 401) throw new Error('권한 없음');
+        if (!res.ok) throw new Error('status ' + res.status);
+        return res.text();
+      })
+      .then(function (html) {
+        if (html.indexOf('<!DOCTYPE html>') !== 0) throw new Error('응답 형식 오류');
+        render(html);
+      })
+      .catch(function (err) {
+        if (String(err.message) === '권한 없음') {
+          showStatus('권한이 없어요', '이 링크는 지정된 관리자만 사용할 수 있습니다.');
+        } else if (String(err.message) === '응답 형식 오류') {
+          showStatus('보드를 확인하지 못했어요', '링크가 만료되었을 수 있어요. 슬랙에서 보드 링크를 다시 받아 주세요.');
+        } else {
+          showStatus('보드를 불러오지 못했어요', '잠시 후 다시 시도해 주세요.');
+        }
+      });
   }
-  var upstream = BACKEND + '?v=' + encodeURIComponent(viewer) + '&sig=' + encodeURIComponent(sig);
-  fetch(upstream, { headers: { 'Accept': 'text/html' } })
-    .then(function (res) {
-      if (res.status === 403 || res.status === 401) {
-        throw new Error('권한 없음');
-      }
-      if (!res.ok) throw new Error('status ' + res.status);
-      return res.text();
-    })
-    .then(function (html) {
-      if (html.indexOf('<!DOCTYPE html>') !== 0) {
-        throw new Error('응답 형식 오류');
-      }
-      render(html);
-    })
-    .catch(function (err) {
-      if (String(err.message) === '권한 없음') {
-        fail('권한이 없어요', '이 링크는 지정된 관리자만 사용할 수 있습니다.');
-      } else if (String(err.message) === '응답 형식 오류') {
-        fail('보드를 확인하지 못했어요', '링크가 만료되었을 수 있어요. 슬랙에서 보드 링크를 다시 받아 주세요.');
-      } else {
-        fail('보드를 불러오지 못했어요', '잠시 후 다시 시도해 주세요.');
-      }
-    });
+
+  loadBoard();
 })();
 </script>
 </body>
