@@ -13,7 +13,14 @@
       loading: "보드를 불러오는 중…",
       refresh: "새로고침",
       footnote: "9초마다 갱신 · A2 업무는 /wait에서 처리 · 카드 순서는 최근 변경순",
-      columns: { open: "시작 전", in_progress: "진행 중", blocked: "막힘", completed: "완료", cancelled: "취소" },
+      columns: {
+        open: "시작 전",
+        in_progress: "진행 중",
+        waiting: "대기 중(A2)",
+        blocked: "막힘",
+        completed: "완료",
+        cancelled: "취소",
+      },
       moveLabel: "상태 이동…",
       moveAria: (title) => `${title} 상태 이동`,
       a2Reply: "회신 완료",
@@ -66,7 +73,14 @@
       loading: "กำลังโหลดบอร์ด…",
       refresh: "รีเฟรช",
       footnote: "รีเฟรชทุก 9 วินาที · งาน A2 จัดการผ่าน /wait · เรียงตามการเปลี่ยนแปลงล่าสุด",
-      columns: { open: "ยังไม่เริ่ม", in_progress: "กำลังทำ", blocked: "ติดขัด", completed: "เสร็จแล้ว", cancelled: "ยกเลิก" },
+      columns: {
+        open: "ยังไม่เริ่ม",
+        in_progress: "กำลังทำ",
+        waiting: "รอ A2",
+        blocked: "ติดขัด",
+        completed: "เสร็จแล้ว",
+        cancelled: "ยกเลิก",
+      },
       moveLabel: "ย้ายสถานะ…",
       moveAria: (title) => `ย้ายสถานะ ${title}`,
       a2Reply: "ตอบกลับแล้ว",
@@ -117,15 +131,18 @@
   let lang = localStorage.getItem("board-lang") === "th" ? "th" : "ko";
   const t = () => STRINGS[lang];
 
-  // 2026-09-10: 시작 전 → 진행 중 → 막힘 → 완료 4칸으로 통일한다(완료·취소를 화면
-  // 아래 별도 목록으로 두던 것을 없애고 진짜 4번째 칸으로 만듦). A2(waiting-tracker)의
-  // "waiting"·"replied" 상태는 별도 칸 없이 진행 중 칸에 같이 보여준다(둘 다 실제로
-  // 진행 중인 일이라서) — 대신 카드에 A2 표시와 실제 회신/작업완료 버튼을 넣는다.
-  const COLUMN_ORDER = ["open", "in_progress", "blocked", "completed"];
-  const inColumn = (item, column) =>
-    column === "in_progress"
-      ? item.status === "in_progress" || item.status === "waiting"
-      : item.status === column;
+  // 2026-09-10 사용자 요구("이거랑 맞춰져야하는데, 안맞아"): 웹 보드를 슬랙 DM
+  // 보고서와 완전히 같은 칸 구조로 맞춘다. 칸 순서는 core.ts WORK_BOARD_COLUMNS
+  // (진행 중/시작 전/대기 중(A2)/막힘) + 완료 5칸. 대기 중(A2) 칸엔 A2 원본이
+  // "waiting"인 항목만 들어가고, 막힘→진행 중 복귀 이동도 드래그로 가능하게 한다.
+  const COLUMN_ORDER = [
+    "in_progress",
+    "open",
+    "waiting",
+    "blocked",
+    "completed",
+  ];
+  const inColumn = (item, column) => item.status === column;
   const transitions = {
     open: ["in_progress", "cancelled"],
     in_progress: ["open", "blocked", "completed", "cancelled"],

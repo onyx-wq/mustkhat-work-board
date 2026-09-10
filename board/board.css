@@ -146,7 +146,7 @@ h2 {
 }
 #board-columns {
   display: grid;
-  grid-template-columns: repeat(4, minmax(240px, 1fr));
+  grid-template-columns: repeat(5, minmax(200px, 1fr));
   gap: var(--space-4);
   align-items: start;
   overflow-x: auto;
@@ -178,6 +178,9 @@ h2 {
 }
 [data-target="in_progress"] .dot {
   background: var(--status-progress);
+}
+[data-target="waiting"] .dot {
+  background: var(--status-waiting);
 }
 [data-target="blocked"] .dot {
   background: var(--status-blocked);
@@ -363,7 +366,7 @@ dialog select {
     justify-content: space-between;
   }
   #board-columns {
-    grid-template-columns: repeat(4, 280px);
+    grid-template-columns: repeat(5, 240px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
