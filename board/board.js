@@ -47,6 +47,18 @@
       confirmA2Body: (title) => `“${title}” 항목이 A2에서 최종 완료 처리됩니다. 되돌릴 수 없습니다.`,
       dialogBack: "돌아가기",
       dialogConfirm: "확인",
+      addTask: "+ 새 업무",
+      addDialogTitle: "새 업무 등록",
+      addTitleLabel: "업무 제목",
+      addTitlePlaceholder: "예: 상세페이지 초안 작업",
+      addAssigneeLabel: "담당자",
+      addSelfOption: "본인",
+      addConfirm: "등록",
+      addTitleRequired: "업무 제목을 입력해 주세요.",
+      addCreating: "등록 중…",
+      addCreated: (title) => `“${title}” 업무를 등록했습니다.`,
+      addAssigned: (title, name) => `“${title}” 업무를 ${name}님에게 배정하고 알림을 보냈습니다.`,
+      addFailed: "등록하지 못했습니다.",
     },
     th: {
       title: "บอร์ดงานทีม",
@@ -88,6 +100,18 @@
       confirmA2Body: (title) => `รายการ “${title}” จะถูกปิดงานถาวรใน A2 ย้อนกลับไม่ได้`,
       dialogBack: "กลับ",
       dialogConfirm: "ยืนยัน",
+      addTask: "+ งานใหม่",
+      addDialogTitle: "เพิ่มงานใหม่",
+      addTitleLabel: "ชื่องาน",
+      addTitlePlaceholder: "เช่น ร่างหน้ารายละเอียดสินค้า",
+      addAssigneeLabel: "ผู้รับผิดชอบ",
+      addSelfOption: "ตัวเอง",
+      addConfirm: "บันทึก",
+      addTitleRequired: "กรุณากรอกชื่องาน",
+      addCreating: "กำลังบันทึก…",
+      addCreated: (title) => `บันทึกงาน “${title}” แล้ว`,
+      addAssigned: (title, name) => `มอบหมายงาน “${title}” ให้ ${name} และส่งการแจ้งเตือนแล้ว`,
+      addFailed: "บันทึกไม่สำเร็จ",
     },
   };
   let lang = localStorage.getItem("board-lang") === "th" ? "th" : "ko";
@@ -264,6 +288,20 @@
     $("footnote").textContent = t().footnote;
     $("lang-ko").setAttribute("aria-pressed", String(lang === "ko"));
     $("lang-th").setAttribute("aria-pressed", String(lang === "th"));
+    $("add-task").textContent = t().addTask;
+    $("add-title").textContent = t().addDialogTitle;
+    $("add-title-label").textContent = t().addTitleLabel;
+    $("add-task-title").placeholder = t().addTitlePlaceholder;
+    $("add-assignee-label").textContent = t().addAssigneeLabel;
+    $("add-cancel").textContent = t().dialogBack;
+    $("add-confirm").textContent = t().addConfirm;
+    const assignee = $("add-task-assignee");
+    const kept = assignee.value;
+    assignee.replaceChildren(
+      new Option(t().addSelfOption, ""),
+      ...Object.entries(names).map(([id, name]) => new Option(name, id)),
+    );
+    assignee.value = kept;
   }
   function render() {
     renderChrome();
@@ -489,6 +527,55 @@
     const zone = event.target.closest("[data-target]");
     if (zone) move(item, zone.dataset.target);
     else endDrag();
+  });
+  // 2026-09-10 사용자 요구: "업무등록을 이 대시보드에서도 할 수 있게" — /task와
+  // 같은 등록 로직(team-reporting의 registerWorkItem)을 이 보드에서 직접 호출한다.
+  // 등록 주소(createUrl)는 서버가 보드 조회 응답에 이미 서명해서 내려준다.
+  function openAddDialog() {
+    if (busy || !state?.createUrl) return;
+    $("add-task-title").value = "";
+    $("add-task-assignee").value = "";
+    const dialog = $("add-dialog");
+    dialog.returnValue = "";
+    dialog.showModal();
+    $("add-task-title").focus();
+  }
+  async function submitAddTask() {
+    const title = $("add-task-title").value.trim();
+    if (!title) {
+      notice(t().addTitleRequired);
+      return;
+    }
+    const assigneeSlackId = $("add-task-assignee").value || null;
+    busy = true;
+    render();
+    $("sync-status").textContent = t().addCreating;
+    notice("");
+    try {
+      const response = await fetch(state.createUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(15000),
+        body: JSON.stringify({ title, assigneeSlackId }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error || t().addFailed);
+      notice(
+        assigneeSlackId && result.assignee_notified
+          ? t().addAssigned(title, names[assigneeSlackId] || assigneeSlackId)
+          : t().addCreated(title),
+      );
+    } catch (error) {
+      notice(`${t().addFailed} ${error.message || ""}`.trim());
+    } finally {
+      busy = false;
+      render();
+      load();
+    }
+  }
+  $("add-task").addEventListener("click", openAddDialog);
+  $("add-dialog").addEventListener("close", () => {
+    if ($("add-dialog").returnValue === "confirm") submitAddTask();
   });
   function setLang(next) {
     if (next === lang) return;

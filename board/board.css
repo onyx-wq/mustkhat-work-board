@@ -108,6 +108,12 @@ select:disabled {
   color: var(--text);
   font-weight: 600;
 }
+#add-task {
+  background: var(--status-progress);
+  border-color: var(--status-progress);
+  color: white;
+  font-weight: 600;
+}
 .eyebrow {
   font-size: 11px;
   font-weight: 700;
@@ -327,6 +333,17 @@ dialog form {
 }
 dialog h2 {
   font-size: 18px;
+}
+dialog label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: var(--space-1);
+}
+dialog input[type="text"],
+dialog select {
+  width: 100%;
 }
 .dialog-actions {
   display: flex;
