@@ -1,0 +1,261 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light dark}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>A2 DM·채널 흐름도 (2026-09-10 기준)</title>
+<style>
+  :root {
+    --ink: #1a1d21;
+    --muted: #5f6670;
+    --faint: #8a9099;
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --border: #e3e5e8;
+    --dm-fill: #eaf1fd;
+    --dm-border: #b9d0f5;
+    --ch-fill: #eef7ef;
+    --ch-border: #b9dfc0;
+    --accent: #1d5bbf;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --ink: #eef0f2;
+      --muted: #a8afb8;
+      --faint: #767d86;
+      --bg: #15171a;
+      --card: #1d2023;
+      --border: #2b2f34;
+      --dm-fill: #14233d;
+      --dm-border: #2c4a86;
+      --ch-fill: #10291d;
+      --ch-border: #2b6b3f;
+      --accent: #6fa4ff;
+    }
+  }
+  :root[data-theme='dark'] {
+    --ink: #eef0f2;
+    --muted: #a8afb8;
+    --faint: #767d86;
+    --bg: #15171a;
+    --card: #1d2023;
+    --border: #2b2f34;
+    --dm-fill: #14233d;
+    --dm-border: #2c4a86;
+    --ch-fill: #10291d;
+    --ch-border: #2b6b3f;
+    --accent: #6fa4ff;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, 'Apple SD Gothic Neo', 'Pretendard', sans-serif;
+  }
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 56px;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 900;
+    margin: 0 0 8px;
+  }
+  .stamp {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+    margin: 0 0 14px;
+  }
+  .lede {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0 0 28px;
+    max-width: 62ch;
+  }
+  figure {
+    margin: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px 14px;
+  }
+  svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  figcaption {
+    font-size: 12.5px;
+    color: var(--faint);
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 18px;
+    font-size: 12.5px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+</style>
+
+<div class="page">
+  <h1>A2 대기 항목 — 개인 DM vs 전체 채널, 누가 언제 뭘 받나</h1>
+  <p class="stamp">2026-09-10 기준 · [회신 완료]/[작업 완료] 분리(09-08) · 취소 채널 공개(09-07) · 웹 보드 연동(09-10) 반영</p>
+  <p class="lede">
+    <code>/wait</code>로 등록하든 <code>@mustkhat</code>한테 말로 등록하든, 그 다음부터는
+    완전히 똑같이 움직입니다. 버튼은 두 종류로 나뉩니다 — <b>[회신 완료]</b>는
+    "답을 했다"는 뜻(일은 계속 진행), <b>[작업 완료]</b>는 "일이 끝났다"는 뜻(종결·채널 공개).
+    웹 업무 보드 '대기 중(A2)' 칸 카드에서도 같은 버튼을 누를 수 있습니다.
+    아래는 등록 순간부터 완료까지, 개인 DM으로 가는 것과 전체 채널(#prj-mustkhat)에
+    공개되는 것을 시간 순서대로 나눈 그림입니다.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 860 920" role="img" aria-label="A2 대기 항목의 개인 DM, 전체 채널, 웹 업무 보드 이벤트를 등록 시점, 매주 월요일, 버튼 클릭 시점 순서로 보여주는 흐름도">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+        </marker>
+      </defs>
+
+      <!-- lane backgrounds -->
+      <rect x="16" y="64" width="270" height="832" rx="12" fill="var(--dm-fill)" stroke="var(--dm-border)" />
+      <rect x="574" y="64" width="270" height="832" rx="12" fill="var(--ch-fill)" stroke="var(--ch-border)" />
+      <text x="151" y="50" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">개인 DM</text>
+      <text x="709" y="50" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">전체 채널 · #prj-mustkhat</text>
+
+      <!-- N1: register trigger -->
+      <rect x="318" y="78" width="224" height="48" rx="10" fill="var(--card)" stroke="currentColor" stroke-width="1.5" />
+      <text x="430" y="98" text-anchor="middle" font-size="12.5" font-weight="800" fill="currentColor">/wait 또는 @mustkhat</text>
+      <text x="430" y="115" text-anchor="middle" font-size="11" fill="var(--muted)">둘 중 아무거나로 등록</text>
+
+      <!-- arrows from N1 -->
+      <line x1="380" y1="126" x2="205" y2="182" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)" />
+      <text x="270" y="150" text-anchor="middle" font-size="10.5" fill="var(--muted)">항상</text>
+
+      <line x1="360" y1="126" x2="151" y2="272" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)" />
+      <text x="335" y="163" text-anchor="middle" font-size="10.5" fill="var(--muted)">조건부: 실멘션일 때만</text>
+
+      <line x1="482" y1="126" x2="655" y2="182" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)" />
+      <text x="596" y="150" text-anchor="middle" font-size="10.5" fill="var(--muted)">항상</text>
+
+      <!-- left lane box A: requester immediate confirm -->
+      <rect x="36" y="182" width="230" height="76" rx="10" fill="var(--card)" stroke="var(--dm-border)" />
+      <text x="151" y="204" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor">요청자에게: 등록 확인</text>
+      <text x="151" y="222" text-anchor="middle" font-size="11" fill="var(--muted)">텍스트만, 버튼 없음</text>
+      <text x="151" y="238" text-anchor="middle" font-size="11" fill="var(--muted)">(취소하려면 명령 재입력 안내)</text>
+
+      <!-- left lane box B: assignee DM -->
+      <rect x="36" y="272" width="230" height="100" rx="10" fill="var(--card)" stroke="var(--dm-border)" />
+      <text x="151" y="294" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor">담당자에게: 회신 요청 DM</text>
+      <text x="151" y="312" text-anchor="middle" font-size="11" fill="var(--muted)">버튼 2개: [회신 완료] [작업 완료]</text>
+      <text x="151" y="328" text-anchor="middle" font-size="10.5" fill="var(--faint)">회신=답만 · 작업 완료=일 종결</text>
+      <text x="151" y="343" text-anchor="middle" font-size="10.5" fill="var(--faint)">대상이 @진짜슬랙사람일 때만 발송</text>
+
+      <!-- right lane box A: channel post on register -->
+      <rect x="594" y="182" width="230" height="86" rx="10" fill="var(--card)" stroke="var(--ch-border)" />
+      <text x="709" y="204" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor">📌 대기 등록 게시</text>
+      <text x="709" y="222" text-anchor="middle" font-size="11" fill="var(--muted)">누가·누구를·마감 요약 · 등록마다 항상</text>
+      <text x="709" y="240" text-anchor="middle" font-size="11" fill="var(--muted)">취소하면 ↩ 취소 게시도 이 채널로</text>
+
+      <!-- time passes dashed connector -->
+      <line x1="430" y1="126" x2="430" y2="418" stroke="currentColor" stroke-width="1" stroke-dasharray="3 5" />
+      <text x="430" y="380" text-anchor="middle" font-size="11" fill="var(--muted)">그 사이 "대기 중" 상태로 남아있음</text>
+
+      <!-- N2: weekly digest trigger -->
+      <rect x="308" y="418" width="244" height="48" rx="10" fill="var(--card)" stroke="currentColor" stroke-width="1.5" />
+      <text x="430" y="438" text-anchor="middle" font-size="12.5" font-weight="800" fill="currentColor">매주 월요일 10:00 (BKK)</text>
+      <text x="430" y="455" text-anchor="middle" font-size="11" fill="var(--muted)">자동 예약 실행</text>
+
+      <line x1="380" y1="466" x2="205" y2="512" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)" />
+      <text x="270" y="490" text-anchor="middle" font-size="10.5" fill="var(--muted)">매주, 안 끝난 것만</text>
+
+      <line x1="482" y1="466" x2="655" y2="512" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)" />
+      <text x="596" y="490" text-anchor="middle" font-size="10.5" fill="var(--muted)">매주(0건이면 생략)</text>
+
+      <!-- left lane box C: weekly requester DM with button -->
+      <rect x="36" y="512" width="230" height="100" rx="10" fill="var(--card)" stroke="var(--dm-border)" />
+      <text x="151" y="534" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor">요청자에게: 아침 요약 DM</text>
+      <text x="151" y="552" text-anchor="middle" font-size="11" fill="var(--muted)">대기 + "회신만 한" 항목(replied) 섹션</text>
+      <text x="151" y="568" text-anchor="middle" font-size="10.5" fill="var(--faint)">둘 다 [작업 완료] 버튼 포함</text>
+      <text x="151" y="583" text-anchor="middle" font-size="10.5" fill="var(--faint)">(0건이면 이 DM도 없음)</text>
+
+      <!-- right lane box B: channel weekly summary -->
+      <rect x="594" y="512" width="230" height="76" rx="10" fill="var(--card)" stroke="var(--ch-border)" />
+      <text x="709" y="534" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor">채널 주간 요약 게시</text>
+      <text x="709" y="552" text-anchor="middle" font-size="11" fill="var(--muted)">전체 대기 현황 한 번에</text>
+      <text x="709" y="568" text-anchor="middle" font-size="11" fill="var(--muted)">대기 0건이면 게시 생략</text>
+
+      <!-- web work board box -->
+      <rect x="308" y="596" width="244" height="76" rx="10" fill="var(--card)" stroke="var(--border)" stroke-width="1.5" />
+      <text x="430" y="616" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor">🖥 웹 업무 보드 "대기 중(A2)" 칸</text>
+      <text x="430" y="634" text-anchor="middle" font-size="10.5" fill="var(--muted)">등록·취소·회신·완료가 카드에 실시간 반영</text>
+      <text x="430" y="650" text-anchor="middle" font-size="10.5" fill="var(--muted)">카드에서도 같은 버튼 클릭 가능</text>
+
+      <!-- button click node -->
+      <line x1="240" y1="372" x2="370" y2="700" stroke="currentColor" stroke-width="1" stroke-dasharray="3 5" marker-end="url(#arrow)" />
+      <line x1="200" y1="612" x2="390" y2="700" stroke="currentColor" stroke-width="1" stroke-dasharray="3 5" marker-end="url(#arrow)" />
+      <line x1="430" y1="672" x2="430" y2="700" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)" />
+
+      <rect x="308" y="700" width="244" height="60" rx="10" fill="var(--card)" stroke="currentColor" stroke-width="1.5" />
+      <text x="430" y="721" text-anchor="middle" font-size="12.5" font-weight="800" fill="currentColor">버튼 클릭 — DM·웹 보드 어디서든</text>
+      <text x="430" y="738" text-anchor="middle" font-size="11" fill="var(--muted)">[회신 완료] 또는 [작업 완료] · 서버가 즉시 처리</text>
+
+      <line x1="360" y1="760" x2="180" y2="780" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)" />
+      <text x="270" y="776" text-anchor="middle" font-size="10.5" fill="var(--muted)">둘 다 알림 발송</text>
+
+      <line x1="500" y1="760" x2="680" y2="780" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)" />
+      <text x="590" y="776" text-anchor="middle" font-size="10.5" fill="var(--muted)">[작업 완료]일 때만</text>
+
+      <!-- left lane box D: requester result DMs -->
+      <rect x="36" y="780" width="230" height="100" rx="10" fill="var(--card)" stroke="var(--dm-border)" />
+      <text x="151" y="802" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor">요청자에게 알림 DM</text>
+      <text x="151" y="820" text-anchor="middle" font-size="10.5" fill="var(--muted)">💬 [회신 완료]: "회신했어요, 일은 진행 중"</text>
+      <text x="151" y="836" text-anchor="middle" font-size="10.5" fill="var(--muted)">✅ [작업 완료]: 완료 알림</text>
+      <text x="151" y="852" text-anchor="middle" font-size="10.5" fill="var(--faint)">(회신 완료는 항목이 계속 추적됨)</text>
+
+      <!-- right lane box C2: channel completion post -->
+      <rect x="594" y="780" width="230" height="86" rx="10" fill="var(--card)" stroke="var(--ch-border)" />
+      <text x="709" y="802" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor">✅ 완료 게시 (채널)</text>
+      <text x="709" y="820" text-anchor="middle" font-size="11" fill="var(--muted)">[작업 완료] 시 항상 공개</text>
+      <text x="709" y="836" text-anchor="middle" font-size="11" fill="var(--muted)">[회신 완료]는 채널에 공개 안 함</text>
+
+      <!-- feedback: replied items keep appearing in next weekly digest -->
+      <line x1="100" y1="780" x2="100" y2="612" stroke="currentColor" stroke-width="1" stroke-dasharray="3 5" marker-end="url(#arrow)" />
+      <text x="112" y="682" text-anchor="start" font-size="10" fill="var(--muted)">replied는 다음 주간 요약</text>
+      <text x="112" y="698" text-anchor="start" font-size="10" fill="var(--muted)">"확인 필요" 섹션에 계속 등장</text>
+    </svg>
+    <figcaption>
+      왼쪽(파란 배경)은 특정 한 사람에게만 보이는 개인 DM, 오른쪽(초록 배경)은 팀 전체가 보는
+      공개 채널입니다. 등록 방법(<code>/wait</code> vs <code>@mustkhat</code>)은 이 그림에
+      영향을 주지 않습니다 — 등록되고 나면 완전히 같은 경로를 탑니다.
+      [회신 완료]는 답만 확인했다는 뜻이라 채널에 공개되지 않고, 일이 실제로 끝나야
+      [작업 완료]로 종결·채널 공개됩니다.
+    </figcaption>
+  </figure>
+
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--dm-fill); border:1px solid var(--dm-border)"></span>개인 DM (그 사람만 봄)</span>
+    <span><span class="swatch" style="background:var(--ch-fill); border:1px solid var(--ch-border)"></span>전체 채널 (팀 전체가 봄)</span>
+    <span><span class="swatch" style="background:var(--card); border:1px solid var(--border)"></span>웹 업무 보드 "대기 중(A2)" 칸</span>
+  </div>
+</div>
+
+</body></html>
