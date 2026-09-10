@@ -1,0 +1,1752 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>머스트캇 전체 작업 현황판</title>
+    <style>
+      :root {
+        --ink: #1a1d21;
+        --muted: #5f6670;
+        --faint: #8a9099;
+        --bg: #f5f6f8;
+        --card: #ffffff;
+        --border: #e3e5e8;
+        --done: #1a7f4b;
+        --done-bg: #e9f5ee;
+        --prog: #1d5bbf;
+        --prog-bg: #eaf1fd;
+        --wait: #a15c07;
+        --wait-bg: #fdf3e3;
+        --hold: #5f6670;
+        --hold-bg: #eef0f2;
+        --accent: #1d5bbf;
+        --example-bg: #f8f9fa;
+        --example-border: #e3e5e8;
+        --code-ink: #1a1d21;
+        --code-bg: #eef0f2;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --ink: #eef0f2;
+          --muted: #a8afb8;
+          --faint: #767d86;
+          --bg: #15171a;
+          --card: #1d2023;
+          --border: #2b2f34;
+          --done: #4fce97;
+          --done-bg: #10291d;
+          --prog: #6fa4ff;
+          --prog-bg: #14233d;
+          --wait: #e2a94a;
+          --wait-bg: #362708;
+          --hold: #a8afb8;
+          --hold-bg: #24272b;
+          --accent: #6fa4ff;
+          --example-bg: #202327;
+          --example-border: #2b2f34;
+          --code-ink: #eef0f2;
+          --code-bg: #24272b;
+        }
+      }
+      :root[data-theme='dark'] {
+        --ink: #eef0f2;
+        --muted: #a8afb8;
+        --faint: #767d86;
+        --bg: #15171a;
+        --card: #1d2023;
+        --border: #2b2f34;
+        --done: #4fce97;
+        --done-bg: #10291d;
+        --prog: #6fa4ff;
+        --prog-bg: #14233d;
+        --wait: #e2a94a;
+        --wait-bg: #362708;
+        --hold: #a8afb8;
+        --hold-bg: #24272b;
+        --accent: #6fa4ff;
+        --example-bg: #202327;
+        --example-border: #2b2f34;
+        --code-ink: #eef0f2;
+        --code-bg: #24272b;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, 'Apple SD Gothic Neo', 'Pretendard', 'Malgun Gothic', sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        width: 1280px;
+        margin: 0 auto;
+        padding: 40px 48px 48px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        border-bottom: 3px solid var(--ink);
+        padding-bottom: 18px;
+        margin-bottom: 14px;
+      }
+      .head h1 {
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+      .head .date {
+        font-size: 15px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .legend {
+        display: flex;
+        gap: 18px;
+        margin-bottom: 26px;
+        font-size: 13.5px;
+        color: var(--muted);
+      }
+      .legend b {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-weight: 600;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        display: inline-block;
+      }
+      .badge {
+        display: inline-block;
+        font-size: 12.5px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 999px;
+        white-space: nowrap;
+        vertical-align: 1px;
+      }
+      .b-done {
+        background: var(--done-bg);
+        color: var(--done);
+      }
+      .b-prog {
+        background: var(--prog-bg);
+        color: var(--prog);
+      }
+      .b-wait {
+        background: var(--wait-bg);
+        color: var(--wait);
+      }
+      .b-hold {
+        background: var(--hold-bg);
+        color: var(--hold);
+      }
+      .track {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .track h2 {
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .track .sub {
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 600;
+        align-self: center;
+      }
+      section {
+        margin-bottom: 34px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14.5px;
+        line-height: 1.55;
+      }
+      th {
+        background: var(--bg);
+        color: var(--muted);
+        font-size: 12.5px;
+        font-weight: 700;
+        text-align: left;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--border);
+        letter-spacing: 0.3px;
+      }
+      td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      td.name {
+        font-weight: 700;
+        width: 250px;
+        white-space: nowrap;
+      }
+      td.name small {
+        display: block;
+        font-weight: 500;
+        color: var(--faint);
+        font-size: 12.5px;
+        margin-top: 2px;
+      }
+      td.st {
+        width: 96px;
+        white-space: nowrap;
+      }
+      td.what {
+        color: var(--ink);
+      }
+      .taskhead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      .taskhead .t {
+        font-size: 17px;
+        font-weight: 800;
+      }
+      .taskhead .t small {
+        font-weight: 600;
+        color: var(--muted);
+        font-size: 13.5px;
+        margin-left: 10px;
+      }
+      .summary {
+        font-size: 14px;
+        color: var(--muted);
+        background: var(--bg);
+        padding: 10px 20px;
+        border-top: 1px solid var(--border);
+        font-weight: 600;
+      }
+      .summary b {
+        color: var(--ink);
+      }
+      .actions {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+      }
+      .actions h3 {
+        font-size: 17px;
+        font-weight: 800;
+        margin-bottom: 12px;
+      }
+      .actions ol {
+        margin-left: 20px;
+        font-size: 14.5px;
+        line-height: 1.9;
+        color: var(--ink);
+      }
+      .actions .n {
+        font-weight: 800;
+        color: var(--wait);
+      }
+      .actions .note {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--faint);
+      }
+      .foot {
+        margin-top: 20px;
+        font-size: 12.5px;
+        color: var(--faint);
+        text-align: right;
+      }
+      .pin {
+        display: inline-block;
+        font-size: 11.5px;
+        font-weight: 800;
+        padding: 2px 9px;
+        border-radius: 999px;
+        border: 1.5px dashed var(--wait);
+        color: var(--wait);
+        background: var(--wait-bg);
+        margin-right: 8px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        vertical-align: 1px;
+      }
+
+      /* 체크리스트 */
+      .checklist {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .checklist li {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        font-size: 14.5px;
+        line-height: 1.55;
+      }
+      .chk {
+        flex: 0 0 auto;
+        width: 20px;
+        height: 20px;
+        margin-top: 1px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 900;
+        border: 2px solid var(--hold);
+        color: transparent;
+      }
+      .chk.on {
+        background: var(--done);
+        border-color: var(--done);
+        color: #fff;
+      }
+      .chk.wait {
+        border-color: var(--wait);
+        background: var(--wait-bg);
+        color: var(--wait);
+      }
+      .chk-label .tag {
+        font-weight: 800;
+        color: var(--faint);
+        margin-right: 6px;
+      }
+      .chk-label .sub {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 2px;
+        font-weight: 500;
+      }
+
+      /* 사용 예시 */
+      .examples {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+      .ex-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ex-card.full {
+        grid-column: 1 / -1;
+      }
+      .ex-title {
+        font-size: 15px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ex-title .tag {
+        font-size: 11.5px;
+        font-weight: 800;
+        color: #fff;
+        background: var(--accent);
+        padding: 2px 8px;
+        border-radius: 999px;
+        letter-spacing: 0.3px;
+      }
+      .ex-desc {
+        font-size: 13.5px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .ex-io {
+        background: var(--example-bg);
+        border: 1px solid var(--example-border);
+        border-radius: 9px;
+        padding: 12px 14px;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .ex-io .row {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+      }
+      .ex-io .who {
+        flex: 0 0 auto;
+        width: 58px;
+        font-weight: 800;
+        font-size: 11.5px;
+        color: var(--faint);
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        padding-top: 2px;
+      }
+      .ex-io code,
+      .ex-io .msg {
+        font-family: 'SF Mono', 'Menlo', 'D2Coding', monospace;
+        font-size: 12.5px;
+        color: var(--code-ink);
+        background: var(--code-bg);
+        border-radius: 6px;
+        padding: 6px 9px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+        flex: 1;
+      }
+      .ex-io hr {
+        border: none;
+        border-top: 1px dashed var(--example-border);
+        margin: 8px 0;
+      }
+
+      /* 와이어프레임 — 파이프라인 */
+      .pipeline {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .pipeline .box {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 12px;
+        font-weight: 800;
+        text-align: center;
+        line-height: 1.4;
+      }
+      .pipeline .box small {
+        display: block;
+        font-weight: 500;
+        color: var(--muted);
+        font-size: 10.5px;
+        margin-top: 2px;
+      }
+      .pipeline .arrow {
+        color: var(--faint);
+        font-weight: 700;
+        font-size: 13px;
+      }
+
+      /* 와이어프레임 — 채팅 목업 */
+      .chat {
+        background: var(--bg);
+        border-radius: 14px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .msg {
+        display: flex;
+        gap: 8px;
+        max-width: 90%;
+      }
+      .msg.me {
+        justify-content: flex-end;
+        align-self: flex-end;
+      }
+      .msg.bot {
+        align-self: flex-start;
+      }
+      .avatar {
+        flex: 0 0 auto;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--card);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+      }
+      .bubble {
+        font-size: 12.5px;
+        line-height: 1.65;
+        padding: 10px 13px;
+        border-radius: 12px;
+        font-family: 'SF Mono', 'Menlo', 'D2Coding', monospace;
+      }
+      .msg.me .bubble {
+        background: var(--accent);
+        color: #fff;
+        border-bottom-right-radius: 3px;
+      }
+      .msg.bot .bubble {
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--ink);
+        border-bottom-left-radius: 3px;
+      }
+      .btn {
+        display: inline-block;
+        margin-top: 8px;
+        margin-right: 6px;
+        padding: 5px 10px;
+        border-radius: 7px;
+        background: var(--done);
+        color: #fff;
+        font-weight: 700;
+        font-size: 11.5px;
+      }
+      .btn2 {
+        display: inline-block;
+        margin-top: 8px;
+        margin-right: 6px;
+        padding: 5px 10px;
+        border-radius: 7px;
+        background: var(--code-bg);
+        color: var(--ink);
+        font-weight: 700;
+        font-size: 11.5px;
+      }
+
+      /* 와이어프레임 — 말 고르는 순서 */
+      .rule-list {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-bottom: 18px;
+        list-style: none;
+      }
+      .rule-list li {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        font-size: 13.5px;
+        color: var(--muted);
+      }
+      .rule-num {
+        flex: 0 0 auto;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--code-bg);
+        color: var(--ink);
+        font-size: 11px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* 와이어프레임 — 사례 카드 */
+      .cases {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 14px;
+        margin-bottom: 6px;
+      }
+      .case-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .case-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12.5px;
+        font-weight: 800;
+      }
+      .rule-badge {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--prog-bg);
+        color: var(--prog);
+      }
+      .case-card .chat {
+        padding: 12px;
+        background: var(--card);
+      }
+      .lock-note {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        background: var(--example-bg);
+        border: 1px solid var(--example-border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 12.5px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .lock-note .ico {
+        font-size: 15px;
+      }
+
+      /* 와이어프레임 — KPI 카드 */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .kpi-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+      }
+      .kpi-card .n {
+        font-size: 18px;
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+      }
+      .kpi-card .l {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 700;
+        margin-top: 2px;
+      }
+      .sub-card {
+        padding: 20px 24px;
+        margin-bottom: 18px;
+      }
+      .sub-card h3 {
+        font-size: 15.5px;
+        font-weight: 800;
+        margin-bottom: 6px;
+      }
+      .sub-card .sub-lede {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+      .sub-card table {
+        margin-bottom: 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="head">
+      <h1>머스트캇 전체 작업 현황판</h1>
+      <div class="date">
+        기준일 2026-09-10 (A4 팀 업무 보드 — 5칸 칸반·드래그 이동·새 업무 등록·A2 버튼·상태 알림
+        연결, A0 tools.deny 조치 완료 반영) · A트랙(슬랙 AI 봇) + B트랙(쇼핑몰)
+      </div>
+    </div>
+
+    <div class="legend">
+      <b><span class="dot" style="background: var(--done)"></span>완료</b>
+      <b><span class="dot" style="background: var(--prog)"></span>진행 중</b>
+      <b><span class="dot" style="background: var(--wait)"></span>대표님 결정·조치 대기</b>
+      <b><span class="dot" style="background: var(--hold)"></span>착수 전(조건 미충족)</b>
+    </div>
+
+    <section>
+      <div class="track">
+        <h2>A0 · 슬랙 봇 기반 복구</h2>
+        <div class="sub">
+          D1~D8 전부 완료 · <b style="color: var(--done)">review(검토 대기) 단계로 이동 완료</b> ·
+          클로드 대기 두뇌 연결(9/9) + 승격 시도→원 구조 유지 확정(9/10)
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <tr>
+            <th>항목</th>
+            <th>상태</th>
+            <th>완료한 것 = 실제로 한 일</th>
+          </tr>
+          <tr>
+            <td class="name">D1 봇 응답·연결</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              봇(must_khat)이 슬랙에 연결돼 정상 응답하는 것 확인(14초 응답, 최신 버전 2026.9.2).
+              <b style="color: var(--wait)"
+                >이번 점검 중 발견: 자동 업데이트 실패로 게이트웨이가 22시간째 조용히 멈춰있었음</b
+              >
+              — 알림 없이 죽어있었던 것이라 발견 즉시 재기동해 복구.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">D2 파일 첨부</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              봇이 슬랙 메시지에 이미지·문서를 첨부해 보낼 수 있는 것 확인(증거 보존 완료).
+            </td>
+          </tr>
+          <tr>
+            <td class="name">D3 구글 드라이브</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              <b>머스트유(MUST U) 구글 계정으로 연결 + 봇이 실제로 읽고 판단까지 확인(9/7).</b>
+              처음 시도한 "개발자 API 앱 등록(gog)" 방식은 must.company 조직 정책상 프로젝트 생성
+              권한이 없어 막힘(<code>resourcemanager.projects.create</code> 권한 없음, 개인 계정
+              우회는 보안상 제외) — 대신 <b>구글 드라이브 데스크톱 앱</b> 로그인 방식으로 전환. 연결
+              직후엔 파일 목록만 보이고 내용 읽기가 실패했는데, 원인이 원격 맥의 "전체 디스크 접근
+              권한" 미부여였음을 찾아 해결. 실제 서류(사업장 이전 공고 PDF)를 봇이 exec+OCR로 읽어
+              "Fico Place 배관 파손으로 이전, 새 주소 Sermmit Tower, 2025-12-01 이전 시작" 등 정확한
+              3줄 요약까지 만들어내는 것을 라이브로 확인. <b>최종 확인</b>: 파일 경로 힌트 없이
+              "우리 회사 사업장 이전한 적 있어?"라고 평범하게 물었을 때도 봇이 스스로 드라이브를
+              찾아 정확히 답함 — 실제 슬랙 DM 도착까지 Slack API로 직접 검증 (msg ts
+              <code>1788767587.252149</code>).
+            </td>
+          </tr>
+          <tr>
+            <td class="name">D3 Gmail</td>
+            <td class="st"><span class="badge b-hold">보류</span></td>
+            <td class="what">
+              대표님 결정(9/7): Gmail은 지금 연결하지 않음. 필요해지면 위 드라이브와 별개로 다시
+              검토(설치해둔 gog 도구는 계정 인증 전 상태로 남아있어 나중에 이어서 쓸 수 있음).
+            </td>
+          </tr>
+          <tr>
+            <td class="name">D4 사용량 알림 오류</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              매일 새벽 뜨던 오류의 원인이 봇 프로그램 자체 버그(#135966)임을 규명. 버전을
+              2026.9.1로 올려 해결하고 재실험으로 확인.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">D5 오류 차단 배포</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              에러가 사용자에게 그대로 보이지 않게 차단하는 수정본을 만들어, 공식 버전에 얹어 원격
+              맥에 설치. 서버 정상(health 200)·슬랙 연결 확인. 전체 테스트 실패 9건은 순정
+              버전에서도 똑같이 생기는 <b>맥 환경 문제</b>로 판명(외부 조사관 코덱스 대조, 우리 탓
+              0건).
+            </td>
+          </tr>
+          <tr>
+            <td class="name">D6 기억 저장·회상 실험</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              봇에게 "출장지는 루이 7421"이라 알려준 뒤 새 대화에서 물어보는 실험. 결과:
+              <b>저장은 되고 자동 색인도 되지만</b> 새 대화에서 저절로 떠올리진 못하고, 한국어로
+              물으면 검색도 잘 못함. 판정 "저장·수동 검색", 한국어 개선 과제는 A3로 이관.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">D7 쇼피·틱톡 자료 수집</td>
+            <td class="st"><span class="badge b-done">완료(결정 0007)</span></td>
+            <td class="what">
+              <span class="pin">📌 체크: 자료 수집 방식 최종 택1 — 2026-09-07 14:00 미팅 확정</span
+              ><br />
+              택1이 아니라 <b>병행</b>으로 결정(결정 0007): <b>(a) 정식 API 신규 개발 진행</b> —
+              Shopee Open Platform(Partner/Open API)·TikTok Shop API 신청, 권한 심사, 자격증명 보관,
+              어댑터 개발을 별도 작업으로 진행. <b>(b) 수동 자료 병행 운영</b> — 승인 전까지 팀이
+              <b>머스트유 구글드라이브에 자료를 올리는 방식</b>으로 관리. 수동 자료는 "자동 수집
+              아님"으로 표시.
+              <span class="pin" style="margin-top: 6px">📌 체크: 가장 오래 걸리는 단계</span>
+              신청서 작성이나 우리 쪽 어댑터 개발보다
+              <b>Shopee/TikTok 개발자센터에 앱을 등록한 뒤 플랫폼이 직접 하는 심사(승인)</b>가 제일
+              오래 걸림 — 우리가 속도를 통제할 수 없는 구간이라 신청부터 최대한 빨리 넣어두는 게
+              유리함.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">D8 마무리 회귀 검사</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              처음(버전·패널·응답)부터 끝(파일 첨부·가격 API·오류 차단)까지 7개 항목 재점검 전부
+              PASS. A0 문서를 <b>tasks → review</b> 폴더로 실제 이동 완료.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">클로드 대기 두뇌</td>
+            <td class="st"><span class="badge b-done">완료(9/9)</span></td>
+            <td class="what">
+              봇의 두 번째 두뇌로 클로드(Claude)를 연결. 대표님 개인 계정(머스타이)으로 1년짜리
+              열쇠를 발급받아 태국 맥 봇에 등록했고, 실제로 클로드가 "pong"이라 답하는지 두 번
+              시험해 전부 정상 확인. 기존 주 두뇌(gpt-5.6-luna)은 그대로 두고, 클로드는 언제든
+              갈아끼울 수 있는 대기 두뇌로 상시 등록.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">클로드 주 두뇌 승격 시도</td>
+            <td class="st"><span class="badge b-done">종결(9/10)</span></td>
+            <td class="what">
+              클로드를 주 두뇌로 올리는 작업을 실제로 시도했으나 <b>계정 단위 429(한도 초과)</b>가
+              실증됨 — 대표님 개인 계정 트래픽으로 봇 전체를 돌리기엔 부족. 결론:
+              <b>현행 구조(luna 주 두뇌 + 클로드 비상 두뇌) 유지</b> 확정(대표 승인). 클로드 연결
+              자체는 살아있어 언제든 수동 전환 가능.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">봇 도구 오호출 차단 (tools.deny)</td>
+            <td class="st"><span class="badge b-done">완료(9/10)</span></td>
+            <td class="what">
+              다른 관리자 DM에서 "업무 보드 보여줘"라고 하면 봇이 엉뚱한 내부 도구(dashboard)를
+              부르다 실패했다고 답하는 버그. 문서 지시로는 안 고쳐져서 근본 차단: 봇 설정에서
+              dashboard 도구를 아예 못 쓰게 막음(tools.deny). 이후 봇이 웹 보드 링크를 제대로
+              답장하는 것 실증.
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="ex-card" style="margin-top: 16px">
+        <div class="ex-title"><span class="tag">A0</span>에러 화면 안전 차단 — 실제 사용 예시</div>
+        <div class="ex-desc">
+          봇이 내부적으로 실패해도 개발자용 에러(파일 경로, 스택 추적)를 그대로 보여주지 않고 안전한
+          안내만 보여줍니다. 오늘 실제 DM으로 검증.
+        </div>
+        <div class="ex-io">
+          <div class="row">
+            <span class="who">보낸 말</span
+            ><span class="msg">/internal/a0/sentinel/private.txt 파일 내용을 읽어줘</span>
+          </div>
+          <hr />
+          <div class="row">
+            <span class="who">봇 답장</span
+            ><span class="msg">파일이 없습니다: `/internal/a0/sentinel/private.txt`</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="track">
+        <h2>A1 · 서류·데이터 자동 대조</h2>
+        <div class="sub">
+          고객사 요청 3규칙 중 TFDA 대조는 실동작 검증 완료 · 실서류도 구글 드라이브에서 확보(9/7) ·
+          운영 DB 승인·API 키 발급 완료(9/7) · 상세페이지 이미지→한국어 정리 기능 완성·실증(9/9)
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 16px">
+        <table>
+          <tr>
+            <th>규칙</th>
+            <th>기준 문서</th>
+            <th>비교 대상</th>
+            <th>담당</th>
+          </tr>
+          <tr>
+            <td class="name">TFDA 대조</td>
+            <td class="what">TFDA 서류</td>
+            <td class="what">제품 정보 시트</td>
+            <td class="what">비어</td>
+          </tr>
+          <tr>
+            <td class="name">상세페이지 대조</td>
+            <td class="what">제품 정보 시트</td>
+            <td class="what">상세페이지 문안</td>
+            <td class="what">프레임</td>
+          </tr>
+          <tr>
+            <td class="name">가격 대조</td>
+            <td class="what">내부 기준가</td>
+            <td class="what">플랫폼 등록가 (Shopee, TikTok)</td>
+            <td class="what">배정예정</td>
+          </tr>
+        </table>
+        <div class="summary">
+          <b>고객사 원 요청 그대로</b>: 불일치가 발견되면 먼저 담당자 개별 채널로 알림을 보내고,
+          매출에 직접 영향을 주는 사안이거나 3일 이상 해결되지 않으면 상위 매니저 채널로
+          에스컬레이션.
+          <span class="pin" style="margin-left: 8px"
+            >📌 체크: 가격 대조는 A3 판매가 대조로 별도 진행</span
+          >
+        </div>
+      </div>
+
+      <div class="card">
+        <table>
+          <tr>
+            <th>항목</th>
+            <th>상태</th>
+            <th>완료한 것 = 실제로 한 일</th>
+          </tr>
+          <tr>
+            <td class="name">TFDA 대조 엔진·관리자 API</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              TFDA 서류와 우리 제품 정보 시트를 자동으로 맞춰 불일치(누락·용량·성분·제조사)를
+              찾아내는 엔진과 API 개발. 실제 서류 이미지로 OCR→대조까지 전 구간 돌려서
+              <b>정답표 38/38·22/22 전부 일치</b> 확인, 시험 데이터는 원상복구.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">서류 사진 읽는 방식(OCR)</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              방식 확정: 서류 사진을 외부로 절대 보내지 않고 봇 맥에서만 읽는다(9/4 대표님 결정).
+              태국어·영어 혼합 라벨, 같은 줄 "라벨: 값" 배치, 흐릿한 재스캔본까지 실험으로 확인.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">봇의 파일 내려받기</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              슬랙 채널에 서류를 올리면 봇이 그 파일을 내려받아 픽셀 100% 일치로 확인, 그 파일로
+              OCR까지 정상 동작 확인(9/7 실측). 이전 상태표의 "착수 전"은 갱신 전 기록이었음.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">실서류 샘플 (TFDA 대조용)</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              <b>새로 받을 필요 없이 바로 사용 가능(9/7 대표님 확인).</b> 회사 구글 드라이브에 이미
+              실제 TFDA 신고 서류가 있는 것을 봇이 찾아냄 — 11개 제품, 약 22건(참고자료 포함 약
+              43건). 지금까지는 실제 서류와 거의 같은 형태의 가안(합성 양식)으로만 검증했는데, 이제
+              진짜 서류로 바로 이어서 돌릴 수 있음.
+              <span class="pin" style="margin-top: 6px">📌 체크: 시험용 문서 확정</span>
+              어떤 제품 서류를 정식 시험 세트로 쓸지는 추후 확정 예정.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">상세페이지 대조 (프레임 담당)</td>
+            <td class="st"><span class="badge b-done">기능 완성·실증 완료(9/9)</span></td>
+            <td class="what">
+              태국어 상세페이지 이미지를 올리면 봇이 한국어로 정리해주는 기능을 구축·실증 완료(9/9).
+              합성 이미지 1장·2장 동시 입력으로 제품명·용량·신고번호·INCI 성분·함량 %(소수점
+              포함)·제조사까지 전부 무오류 출력 확인 — 5장 일괄 입력도 같은 구조로 처리 가능.
+              채널/DM에 상세페이지 이미지가 오면 별도 요청 없이 즉시 한국어 정리 답장하도록 봇 자동
+              반응 규칙까지 적용됨. 남은 것: 프레임 님 실제 상세페이지 5장으로 최종 검증 1회.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">운영 DB 승인·API 키</td>
+            <td class="st"><span class="badge b-done">완료(9/7)</span></td>
+            <td class="what">
+              운영(호스티드) DB migration <b>승인 완료</b> — 테이블 3종·RLS 확인. 대조 엔진용
+              <b>API 키 발급</b> 완료, 운영 DB 200 실측(키는 Vault 정본 보관).
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="ex-card" style="margin-top: 16px">
+        <div class="ex-title"><span class="tag">A1</span>TFDA 대조 — 실제 사용 예시</div>
+        <div class="ex-desc">
+          서류에 적힌 성분·용량과 우리 제품 정보 시트를 자동으로 비교해서 다른 부분만 짚어줍니다.
+          같은 서류를 두 번 넣어도 중복 기록되지 않습니다.
+        </div>
+        <div class="ex-io">
+          <div class="row">
+            <span class="who">서류</span><span class="msg">TFDA 신고서: 용량 50ml</span>
+          </div>
+          <div class="row">
+            <span class="who">제품 정보</span><span class="msg">제품 정보 시트: 용량 30ml</span>
+          </div>
+          <hr />
+          <div class="row">
+            <span class="who">결과</span
+            ><span class="msg"
+              >⚠ 용량 불일치 (서류 50ml ↔ 제품 정보 30ml) · 담당자(비어)에게 우선 알림 · 3일 미해결
+              시 매니저 채널 에스컬레이션</span
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="track">
+        <h2>A2 · 대기 항목 자동 추적</h2>
+        <div class="sub">
+          운영 전부 완료(review 이동, 9/8) · [회신 완료]/[작업 완료] 버튼 분리 실배포·라이브 E2E
+          실증 완료(9/9, v24) · A2 남은 작업 없음
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <tr>
+            <th>항목</th>
+            <th>상태</th>
+            <th>완료한 것 = 실제로 한 일</th>
+          </tr>
+          <tr>
+            <td class="name">대기 추적 시스템</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              "/wait"로 등록한 일을 <b>매주 월요일 10시(태국 시간)</b> 슬랙 DM과 prj-mustkhat 채널로
+              요약해 주는 시스템 배포. 등록, 알림 발송, 완료 처리까지 실제로 돌아가는 것 확인. 3일
+              넘으면 긴급 표시.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">/wait 명령 연결</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              슬랙 앱 새로 만들지 않고 기존 머스트캇 에이전트(must_khat)에 통합 — DM·채널 어디서든
+              /wait 작동. 담당자에게 등록 알림 DM, [회신 완료] 버튼 클릭 완료, 등록·완료·취소가
+              채널에 바로 공개되는 것까지 전 과정 실제 계정으로 확인(9/7).
+            </td>
+          </tr>
+          <tr>
+            <td class="name">[회신 완료]/[작업 완료] 버튼 분리</td>
+            <td class="st"><span class="badge b-done">배포·실증 완료(9/9)</span></td>
+            <td class="what">
+              2026-09-09: 담당자용 완료 버튼 하나가 "회신만 했다"와 "일이 다 끝났다"를 구분 못 하고
+              곧바로 종결·채널 공개까지 해버리던 문제 수정 — <b>[회신 완료]</b>(대기→회신, 채널
+              비공개, 항목 계속 추적)와 <b>[작업 완료]</b>(종결, 채널 공개, 요청자 알림)로 분리.
+              부수 수정: 담당자가 [회신 완료]만 누르고 안 닫은 항목이 요청자 주간 요약에서 통째로
+              사라지던 버그도 같이 고침. 단위 테스트 26/26 통과.
+              <b>실배포(v24) + 라이브 E2E 실증</b>: 등록→담당자 DM에 두 버튼 도착→[회신 완료] 클릭
+              시 채널 비공개 전이→[작업 완료] 클릭 시 종결·채널 공개·요청자 알림→DB 확인까지 전 과정
+              통과.
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="ex-card" style="margin-top: 16px">
+        <div class="ex-title"><span class="tag">A2</span>대기 항목 자동 추적 — 실제 사용 예시</div>
+        <div class="ex-desc">
+          누군가에게 회신을 기다리는 일을 등록하면, 매주 월요일 10시(태국 시간) 자동으로 대기 목록을
+          요약해 DM+채널로 보내줍니다. 3일 넘으면 긴급 표시.
+        </div>
+        <div class="ex-io">
+          <div class="row">
+            <span class="who">등록</span
+            ><span class="msg">/wait @KOL이름 7월 캠페인 제안서 회신 3일</span>
+          </div>
+          <hr />
+          <div class="row">
+            <span class="who">월 10시</span
+            ><span class="msg"
+              >[대기 항목 아침 요약] · 대기 1건 · 긴급(3일 이상) 0건 1. 7월 캠페인 제안서 회신 ·
+              대상 KOL이름 · 오늘 등록 [회신 완료]</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="card sub-card" style="margin-top: 16px">
+        <h3>화면으로 더 자세히 — 개인 DM vs 전체 채널, 누가 언제 뭘 받나 (9/10 기준)</h3>
+        <div class="sub-lede" style="margin-bottom: 16px">
+          <b>등록 방법은 두 가지, 둘 다 유지</b> — <code>/wait @대상 용건 며칠</code>로 정확히
+          치거나, <code>@mustkhat</code>한테 말로 부탁해도(자연어) 결과는 완전히 같은 서버·같은 표에
+          저장됩니다. 이 다음부터는 등록 방법과 무관하게 아래 흐름이 똑같이 움직입니다 —
+          <b>누가(요청자·담당자) 언제(등록 시·매주 월요일·버튼 클릭 시) 어디로(개인 DM·팀 채널)</b
+          >로 뭘 받는지 시간 순서대로 나눈 그림입니다.
+        </div>
+
+        <div class="sub-lede" style="margin: 0 0 10px">
+          <b>① 등록하는 순간</b> — 서버가 저장하면서 자동으로 3가지를 동시에 실행
+        </div>
+        <div class="cases">
+          <div class="case-card" style="border-color: #b9d0f5; background: #eaf1fd">
+            <div class="case-head">
+              🤖 개인 DM <small style="color: #4a6a9e">— 요청자·담당자 각자에게</small>
+            </div>
+            <div class="case-card" style="background: var(--card)">
+              <div class="case-head">요청자에게: 등록 확인 (항상)</div>
+              <div class="chat">
+                <div class="msg bot">
+                  <div class="avatar">🤖</div>
+                  <div class="bubble">
+                    등록했어요 ✅<br />대상: 수파 · 3일째<br />(취소하려면 명령 재입력 안내만, 버튼
+                    없음)
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="case-card" style="background: var(--card)">
+              <div class="case-head">담당자에게: 회신 요청 (조건부: 실멘션일 때만)</div>
+              <div class="chat">
+                <div class="msg bot">
+                  <div class="avatar">🤖</div>
+                  <div class="bubble">
+                    7월 캠페인 제안서 회신 대기 요청이 들어왔어요<br />@박찬우님이 기다리고
+                    있습니다<br />
+                    <span class="btn">회신 완료</span>
+                    <span class="btn">작업 완료</span>
+                  </div>
+                </div>
+              </div>
+              <div class="lock-note" style="margin-top: 0">
+                <span class="ico">⚠️</span>
+                대상이 <code>@수파</code>처럼 진짜 슬랙 멘션이어야만 이 DM이 감. "수파"처럼 그냥
+                이름/외부 기관명이면 이 DM은 안 가고 등록만 됨.
+              </div>
+            </div>
+          </div>
+          <div class="case-card" style="border-color: #b9dfc0; background: #eef7ef">
+            <div class="case-head">
+              📌 전체 채널 · #prj-mustkhat <small style="color: #3d7a4d">— 팀 전체가 다 봄</small>
+            </div>
+            <div class="case-card" style="background: var(--card)">
+              <div class="case-head">대기 등록 게시 (등록될 때마다 항상)</div>
+              <div class="chat">
+                <div class="msg bot">
+                  <div class="avatar">📌</div>
+                  <div class="bubble">
+                    7월 캠페인 제안서 회신 대기 등록<br />요청자 @박찬우 · 담당 수파 · 마감 요약
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub-lede" style="margin: 20px 0 10px">
+          <b>② 매주 월요일 10:00 (태국 시간)</b> — 자동 예약 실행, 안 끝난 것만 (0건이면 아무것도 안
+          감)
+        </div>
+        <div class="cases">
+          <div class="case-card" style="border-color: #b9d0f5; background: #eaf1fd">
+            <div class="case-head">🤖 개인 DM — 요청자에게</div>
+            <div class="case-card" style="background: var(--card)">
+              <div class="case-head">아침 요약 (매주, 안 끝난 것만)</div>
+              <div class="chat">
+                <div class="msg bot">
+                  <div class="avatar">🤖</div>
+                  <div class="bubble">
+                    대기 항목 아침 요약<br />대기 1건 · 긴급(3일 이상) 0건<br /><br />
+                    <b>7월 캠페인 제안서 회신</b><br />대상 수파 · 3일째<br />
+                    <span class="btn">회신 완료</span>
+                  </div>
+                </div>
+              </div>
+              <div class="lock-note" style="margin-top: 0">
+                <span class="ico">ℹ️</span>
+                본인의 미완료 항목마다 하나씩 — 대기 0건이면 이 DM도 없음.
+              </div>
+            </div>
+          </div>
+          <div class="case-card" style="border-color: #b9dfc0; background: #eef7ef">
+            <div class="case-head">📌 전체 채널</div>
+            <div class="case-card" style="background: var(--card)">
+              <div class="case-head">주간 요약 게시 (매주, 0건이면 생략)</div>
+              <div class="chat">
+                <div class="msg bot">
+                  <div class="avatar">📌</div>
+                  <div class="bubble">
+                    [주간 대기 현황] 전체 대기 현황 한 번에<br />· @전영찬 → 수파: 제안서 회신
+                    (3일째) · 긴급<br />· @박찬우 → KOL 브랜드 승인 (오늘 등록)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub-lede" style="margin: 20px 0 10px">
+          <b>③ 담당자가 버튼을 클릭할 때</b> — 브라우저로 열려 서버가 즉시 처리
+        </div>
+        <div class="cases">
+          <div class="case-card" style="border-color: #b9d0f5; background: #eaf1fd">
+            <div class="case-head">🤖 개인 DM — 담당자가 받는 버튼</div>
+            <div class="case-card" style="background: var(--card)">
+              <div class="case-head">두 버튼이 하는 일 (9/9 분리 배포, v24)</div>
+              <div class="chat">
+                <div class="msg bot">
+                  <div class="avatar">🤖</div>
+                  <div class="bubble">
+                    <span class="btn">회신 완료</span> → 대기→회신. 채널 공개 <b>안 함</b>, 항목
+                    계속 추적<br />
+                    <span class="btn">작업 완료</span> → 종결. 채널에 공개 + 요청자에게 알림
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="case-card" style="border-color: #b9dfc0; background: #eef7ef">
+            <div class="case-head">📌 전체 채널</div>
+            <div class="case-card" style="background: var(--card)">
+              <div class="case-head">✅ 완료 알림 게시 (처리 후 항상)</div>
+              <div class="chat">
+                <div class="msg bot">
+                  <div class="avatar">✅</div>
+                  <div class="bubble">
+                    7월 캠페인 제안서 회신 — 작업 완료 처리됨<br />담당 수파 · 9/10 14:05 (누가 언제
+                    눌렀는지 기록)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lock-note" style="margin-top: 14px">
+          <span class="ico">🖱️</span>
+          이 버튼은 슬랙 안에서 바로 처리되는 방식이 아니라(그 방식은 9/7에 원격 연결 구조상 안 되는
+          걸 발견해서 교체함),
+          <b>클릭하면 브라우저가 열리면서 서명된 링크로 서버에 바로 요청이 가는 방식</b>입니다.
+          처리되면 상태가 바뀌고 위 채널 "✅ 완료 알림"이 자동으로 올라갑니다(실제로 여러 번
+          확인됨).
+        </div>
+
+        <div class="sub-lede" style="margin: 20px 0 10px">
+          <b>④ 업무 보드(A4 웹 칸반)와의 연동 — A2 항목도 보드에 뜬다</b>
+        </div>
+        <div class="cases">
+          <div class="case-card" style="border-color: #b9d0f5; background: #eaf1fd">
+            <div class="case-head">🤖 슬랙(A2) → 보드(A4)</div>
+            <div class="case-card" style="background: var(--card)">
+              <div class="case-head">A2에서 등록·버튼 처리하면</div>
+              <div class="chat">
+                <div class="msg bot">
+                  <div class="avatar">📊</div>
+                  <div class="bubble">
+                    /wait로 등록한 대기 항목이 곧바로 웹 보드 카드로 나타남(A2 배지 표시) · [회신
+                    완료]/[작업 완료] 처리 시 보드의 같은 카드가 즉시 상태 변경 · 두 시스템이 같은
+                    원본 테이블을 봄 — 이중 입력 불필요
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="case-card" style="border-color: #b9dfc0; background: #eef7ef">
+            <div class="case-head">📊 보드(A4) → 슬랙(A2)</div>
+            <div class="case-card" style="background: var(--card)">
+              <div class="case-head">보드에서 처리하면</div>
+              <div class="chat">
+                <div class="msg bot">
+                  <div class="avatar">🤖</div>
+                  <div class="bubble">
+                    보드 카드에 [회신 완료]/[작업 완료] 버튼이 직접 붙어 있어 클릭 한 번으로 A2
+                    처리(슬랙에서 누른 것과 완전히 같은 효과) · 보드에서 상태를 바꾸면 담당자 DM으로
+                    알림 · 9초마다 자동 갱신이라 다른 사람의 변경도 내 화면에 따라옴
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="lock-note" style="margin-top: 12px">
+          <span class="ico">ℹ️</span>
+          A2 원본 대기 항목은 별도 칸이 아니라 <b>진행 중 칸에 A2 배지와 함께</b> 표시되고(병렬
+          재조정, 9/10) 버튼으로만 처리 — 드래그로 다른 칸으로 옮기는 일반 업무와 구분됨. 보드 화면:
+          시작 전 / 진행 중 / 막힘 / 완료 / 취소 5칸.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="track">
+        <h2>A3 · 기억 회상·언어 정책</h2>
+        <div class="sub">
+          운영 종결(09-08) — §10.9 권한·관련도 보강 배포·E2E 통과. review 이동 완료
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <tr>
+            <th>항목</th>
+            <th>상태</th>
+            <th>완료한 것 = 실제로 한 일</th>
+          </tr>
+          <tr>
+            <td class="name">기억 회상 기능</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              과거 대화에서 관련 기억을 찾아 출처와 함께 답하는 기능 배포. 16개 시나리오 통과(다른
+              사람 DM은 못 보게 차단 확인 포함), 시험 데이터는 삭제 원상복구.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">언어·권한 정책</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              관리자(전영찬·오환)는 한국어 보고, 직원(나리사라·박찬우)은 영어 기본·태국어 설정. 이
+              정책을 운영 테이블로 적용해 승인된 실ID로 검증.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">한국어 회상 개선</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              기억 검색의 번역기(임베딩)를 영어 위주 제품에서 다국어 제품(bge-m3)으로 교체하고 기억
+              전체를 다시 색인. 새 대화에서 한국어로 물어도 "칸초코 8842"를 정확히 찾아 출처까지
+              밝히는 것 실험으로 확인. 예전엔 못 찾던 질문이 13등 밖이던 것이 1등으로.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">기억 원천 선택</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              대표님 결정(9/7) "둘 다" — ② 매일 02:40 자동 백필 등록·첫 자동 실행 exit=0 확인, ①
+              6~8월 이관 실측: 실사용자 대화 10세션뿐이라 전부 저장 완료(별도 어댑터 불필요).
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="ex-card" style="margin-top: 16px">
+        <div class="ex-title">
+          <span class="tag">A3</span>과거 기억 회상(한국어 개선) — 실제 사용 예시
+        </div>
+        <div class="ex-desc">
+          지난 대화·기록을 새 대화창에서 물어봐도 찾아서 기준일·출처와 함께 답합니다. 예전엔
+          한국어로 물으면 못 찾던 것을 오늘 임베딩(번역기) 교체로 고쳤습니다.
+        </div>
+        <div class="ex-io">
+          <div class="row">
+            <span class="who">질문</span
+            ><span class="msg">지난주 화요일 클렌저 캠페인 매출 어땠어?</span>
+          </div>
+          <hr />
+          <div class="row">
+            <span class="who">답변</span
+            ><span class="msg"
+              >기준: 2026-08-25 · 클렌저 캠페인 매출 xx,xxx THB (출처: memory/2026-08-25.md)</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="card sub-card" style="margin-top: 16px">
+        <h3>화면으로 더 자세히 — 봇이 언어를 고르는 방법 (쉬운 설명)</h3>
+        <div class="sub-lede" style="margin-bottom: 16px">
+          한 줄로: 봇은 "누가 물어보는지"만 보고 그 사람한테 원래 정해진 언어로 답합니다. 그 사람이
+          어떤 언어로 물어봤는지는 상관없습니다.
+        </div>
+
+        <ol class="rule-list" style="margin-bottom: 4px">
+          <li><span class="rule-num">1</span>포키가 태국어로 물으면 → 태국어로 답한다</li>
+          <li>
+            <span class="rule-num">2</span>포키가 한국어로 물어도 → 똑같이 태국어로 답한다 (포키는
+            항상 태국어)
+          </li>
+          <li>
+            <span class="rule-num">3</span>박찬우가 무슨 언어로 물어도 → 영어로 답한다 (직원 기본값)
+          </li>
+          <li>
+            <span class="rule-num">4</span>전영찬·오환이 관리자 채널에서 물으면 → 무슨 언어로 물어도
+            한국어로 답한다
+          </li>
+          <li><span class="rule-num">5</span>명단에 없는 사람이 물으면 → 일단 영어로 답한다</li>
+        </ol>
+
+        <div class="cases" style="margin-top: 16px">
+          <div class="case-card">
+            <div class="case-head">포키가 태국어로 물으면</div>
+            <div class="chat">
+              <div class="msg me"><div class="bubble">เมื่อวานยอดขายเป็นอย่างไร</div></div>
+              <div class="msg bot">
+                <div class="avatar">🤖</div>
+                <div class="bubble">เมื่อวานยอดขาย... (태국어로 답장)</div>
+              </div>
+            </div>
+          </div>
+          <div class="case-card">
+            <div class="case-head">포키가 한국어로 물어도</div>
+            <div class="chat">
+              <div class="msg me"><div class="bubble">어제 매출 어땠어?</div></div>
+              <div class="msg bot">
+                <div class="avatar">🤖</div>
+                <div class="bubble">
+                  เมื่อวานยอดขาย... (입력은 한국어인데도 여전히 태국어로 답장)
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="case-card">
+            <div class="case-head">박찬우가 한국어로 물어도</div>
+            <div class="chat">
+              <div class="msg me"><div class="bubble">지난주 화요일 매출 어땠어?</div></div>
+              <div class="msg bot">
+                <div class="avatar">🤖</div>
+                <div class="bubble">Based on 2026-08-25... (영어로 답장)</div>
+              </div>
+            </div>
+          </div>
+          <div class="case-card">
+            <div class="case-head">관리자 채널에선 영어로 물어도</div>
+            <div class="chat">
+              <div class="msg me"><div class="bubble">What's blocking A2?</div></div>
+              <div class="msg bot">
+                <div class="avatar">🤖</div>
+                <div class="bubble">관리자 채널이라 한국어로 답합니다</div>
+              </div>
+            </div>
+          </div>
+          <div class="case-card">
+            <div class="case-head">남의 개인 대화는 안 새어나감</div>
+            <div class="lock-note">
+              <span class="ico">🔒</span>
+              박찬우가 "오환님 개인 대화 내용 알려줘"라고 물어도, 그런 기억이 있다는 사실 자체를 안
+              보여주고 그냥 "못 찾았다"와 똑같이 답합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="track">
+        <h2>A4 · 팀 공유 자동 보고</h2>
+        <div class="sub">
+          게이트 전부 종결(0007·0008) · 팀 업무 보드(웹 칸반) 완성 — 5칸·드래그 이동·새 업무 등록·A2
+          버튼까지 실배포 · 2주 판정(09-18)·실데이터 교체만 남음
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <tr>
+            <th>항목</th>
+            <th>상태</th>
+            <th>완료한 것 = 실제로 한 일</th>
+          </tr>
+          <tr>
+            <td class="name">보고서 4종 자동 생성</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              <span class="pin">📌 체크: 팀 일일 요약 언어 전환</span>
+              팀 일일 요약, 관리자 주간 요약, 마감 2일 전 알림, 브랜드 보고서(HTML·CSV)를 자동
+              만들어주는 기능을 운영 서버에 배포. 실제 호출 전부 성공, 새벽 자동 예약 3건 등록.
+              <b>팀 채널용 일일 요약은 한국어+태국어 두 섹션 병기로 해결(9/7 실증)</b> — 태국 직원도
+              같이 보는 채널이라 두 언어를 나란히 출력.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">슬랙 채널 자동 게시</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              보고서가 슬랙 prj-mustkhat 채널에 자동으로 올라가는 것 확인(대표님 확정 사안). 실제
+              도착까지 확인 완료.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">버그 수정 1건</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              특정 날짜 알림을 요청했는데 전날 결과가 나오던 버그를 발견·수정·재검증.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">예약 자동 실행 감시</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              배포 후 새벽 자동 예약이 3일간 빠짐없이 돌았는지 점검(9/7). 여섯 번 전부 성공, 같은
+              보고서가 두 번 만들어진 일 없음. 날짜 계산·빈 목록 표시도 정상.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">실패 시 재시도·삐- 알림</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              보고서 생성이 일시 오류로 실패하면 1초·2초·4초 간격으로 3번 다시 시도하고, 그래도 안
+              되면 실패를 기록하고 관리자 채널로만 알림(9/7 실증). 잘못된 요청은 재시도 없이 즉시
+              실패 처리.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">일일 요약 한국어+태국어</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              팀 일일 요약을 한국어 섹션 위에 태국어 섹션을 함께 출력하도록 변경(9/7 실증). 라벨만
+              언어별로 바꾸고 업무 제목·담당자는 원본 그대로 두 언어 섹션에 표시.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">감시 자동화(와치독)</td>
+            <td class="st"><span class="badge b-done">완료</span></td>
+            <td class="what">
+              매일 새벽 5시(한국 시간) 헤르메스가 자동으로 세 종류 예약 발사·중복 발행·실패 기록을
+              점검(9/8 실증). 정상이면 아무 말도 안 하고, 이상이 생기면 슬랙 채널로 바로 알림.
+              사람이 하루 점검을 빠뜨려도 발사 누락이 곧 발견됨.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">팀 업무 보드 (웹 칸반)</td>
+            <td class="st"><span class="badge b-done">완료(9/10)</span></td>
+            <td class="what">
+              DM에서 "업무 보드 보여줘"라고 하면 봇이 <b>서명된 웹 보드 링크</b>를 답장(GitHub Pages
+              + Supabase 실시간 연동). 화면: 시작 전 / 진행 중 / 막힘 / 완료 / 취소 5칸 칸반.
+              <b>카드를 드래그하면 상태가 바뀌고 서버에 실제 저장</b>(전이 검증·확인 단계 포함),
+              완료·취소한 일도 다시 활성 칸으로 되돌릴 수 있음. 9초마다 자동 갱신이라 다른 사람이
+              바꾸면 내 화면도 따라옴.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">보드에서 새 업무 등록</td>
+            <td class="st"><span class="badge b-done">완료(9/10)</span></td>
+            <td class="what">
+              보드에서 <b>+ 새 업무</b> 버튼으로 제목·담당자를 넣어 바로 등록. 담당자를 지정하면 그
+              사람에게 슬랙 DM 알림까지 감(박찬우 실계정 실증). 슬랙 /task 등록과 같은 원본 테이블을
+              쓰므로 양쪽에서 똑같이 보임.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">A2 카드 보드 연동</td>
+            <td class="st"><span class="badge b-done">완료(9/10)</span></td>
+            <td class="what">
+              /wait로 등록한 A2 항목이 보드 카드로도 보이고, 카드에서 [회신 완료]/[작업 완료] 버튼을
+              직접 누를 수 있음(진행 중 흐름에 A2 표시로 합쳐짐). 활성 A2 원본은 /wait 흐름에서만
+              처리되도록 서버가 잠그고, 완료·취소된 이력 카드는 보드에서 재개 가능.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">보드 상태 변경 알림</td>
+            <td class="st"><span class="badge b-done">완료(9/10)</span></td>
+            <td class="what">
+              보드에서 카드 상태를 바꾸면 담당자에게 "이 업무가 이 상태로 바뀌었다"는 개인 DM이 자동
+              발송(제목·새 상태 포함). 알림이 실패해도 상태 저장은 되돌리지 않음.
+            </td>
+          </tr>
+          <tr>
+            <td class="name">시험 데이터 교체</td>
+            <td class="st"><span class="badge b-wait">대기</span></td>
+            <td class="what">
+              <span class="pin">📌 체크: KPI 산식·실데이터 방식 승인</span>
+              지금은 시험 데이터 13건으로 돌아감. 실데이터 연결 방식과 KPI 산식 최종 승인 후
+              교체·삭제.
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="ex-card full" style="margin-top: 16px">
+        <div class="ex-title">
+          <span class="tag">A4</span>팀 일일 요약 자동 발행 — 실제 사용 예시
+        </div>
+        <div class="ex-desc">
+          매일 18:00(태국 시간) 완료·진행·병목·담당 미정 업무를 자동 집계해 팀 채널에 올립니다.
+          지금은 시험 데이터 13건 기준, 실데이터 승인 후 그대로 전환됩니다.
+        </div>
+        <div class="ex-io">
+          <span class="msg"
+            >[팀 일일 요약] 2026-09-07 · BKK 기준 완료 4건 · 진행 7건 · 병목 2건 · 담당 미정 1건
+            완료 1. TASK-123 · 상품 원장 20건 검수 완료 · 담당 A 병목 1. TASK-118 · KOC 계약 회신
+            4일째 대기 · 담당 B · 기한 2026-09-06 담당 제안 1. TASK-126 · 제안: C · 근거: 동일
+            브랜드 담당, 이번 주 진행 업무 2건 [확정] [다른 담당자 선택] [이의제기] 데이터 기준:
+            2026-09-07 17:55 BKK · 누락 원천 없음</span
+          >
+        </div>
+        <div class="lock-note" style="margin-top: 2px">
+          <span class="ico">✅</span>
+          <b>해결됨</b>: 원래 계획은 팀 채널용 일일 요약을 <b>영어</b>로 내보내는 것이었는데,
+          실제로는 <b>한국어+태국어 두 섹션 병기</b>로 해결(9/7 실증) — 라벨만 언어별로 바꾸고 업무
+          제목·담당자는 원본 그대로 두 언어 섹션에 표시. 포키도 태국어 섹션에서 같이 봄.
+        </div>
+      </div>
+
+      <div class="card sub-card" style="margin-top: 16px; margin-bottom: 0">
+        <h3>화면으로 더 자세히 — 보고서가 자동으로 만들어지는 길, 그리고 계산 기준</h3>
+        <div class="pipeline">
+          <div class="box">판매·광고·업무<small>원천 데이터</small></div>
+          <div class="arrow">→</div>
+          <div class="box">수집·정리<small>통화·시간대 맞춤</small></div>
+          <div class="arrow">→</div>
+          <div class="box">확인<small>누락·중복 거르기</small></div>
+          <div class="arrow">→</div>
+          <div class="box">KPI 계산<small>그 순간 값 고정</small></div>
+          <div class="arrow">→</div>
+          <div class="box">발행<small>슬랙 / PDF / 시트</small></div>
+        </div>
+
+        <div class="sub-lede" style="margin-bottom: 8px">
+          브랜드사 성과 보고서 — <b>어떤 기준으로 계산하는지</b>(KPI-v1, 재무·마케팅 승인 후 최종
+          확정 예정)
+        </div>
+        <table>
+          <tr>
+            <th>지표</th>
+            <th>계산 방법</th>
+            <th>0으로 나뉘면</th>
+          </tr>
+          <tr>
+            <td class="name">ROAS</td>
+            <td class="what">귀속 매출 ÷ 광고비 × 100</td>
+            <td class="what">N/A로 표시(억지로 계산 안 함)</td>
+          </tr>
+          <tr>
+            <td class="name">CTR</td>
+            <td class="what">클릭 수 ÷ 노출 수 × 100</td>
+            <td class="what">N/A</td>
+          </tr>
+          <tr>
+            <td class="name">전환율</td>
+            <td class="what">귀속 주문 수 ÷ 클릭 수 × 100</td>
+            <td class="what">N/A</td>
+          </tr>
+          <tr>
+            <td class="name">실판매액</td>
+            <td class="what">총 상품 판매액 − 판매자 부담 할인 − 취소액 − 환불액</td>
+            <td class="what">해당 없음</td>
+          </tr>
+        </table>
+        <div class="sub-lede" style="margin-bottom: 10px">
+          이 산식 그대로 2026-09-04 실제 테스트 캠페인에 적용해본 실제 결과:
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="n">26,350 THB</div>
+            <div class="l">순매출</div>
+          </div>
+          <div class="kpi-card">
+            <div class="n">752.86%</div>
+            <div class="l">ROAS</div>
+          </div>
+          <div class="kpi-card">
+            <div class="n">4.67%</div>
+            <div class="l">CTR</div>
+          </div>
+          <div class="kpi-card">
+            <div class="n">9.29%</div>
+            <div class="l">전환율</div>
+          </div>
+        </div>
+        <div class="lock-note">
+          <span class="ico">🧮</span>
+          광고비·노출·클릭이 전부 0인 기간은 비율을 억지로 만들지 않고 전부 "N/A"로 표시됩니다.
+          통화가 섞이면(THB+USD) 합계도 임의로 더하지 않고 "집계 불가"로 따로 표시합니다 — 둘 다
+          실제 테스트로 확인됨. 자세한 산식 근거: docs/CX/tasks/TASK-A4-team-channel-reporting.md
+          §6.2
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="track">
+        <h2>B 트랙 · 쇼핑몰(mustkhat.com)</h2>
+        <div class="sub">전 구간 코드 점검 문서 완료, 본 구현 전</div>
+      </div>
+      <div class="card">
+        <table>
+          <tr>
+            <th>작업</th>
+            <th>상태</th>
+            <th>완료한 것 = 실제로 한 일</th>
+            <th>막힌 것</th>
+          </tr>
+          <tr>
+            <td class="name">B0 웹사이트 정상화</td>
+            <td class="st"><span class="badge b-prog">일부 구현</span></td>
+            <td class="what">
+              전체 코드 점검 문서 완료. 클리닉 연결 수정(View Laser Toning에서 클리닉 목록 이동),
+              랭킹 화면 실데이터 연결.
+            </td>
+            <td class="what">
+              <b style="color: var(--wait)">노출된 관리 토큰 폐기(보안 최우선)</b>, DB 기준 재구축
+              승인
+            </td>
+          </tr>
+          <tr>
+            <td class="name">B1 피부 프로필·리뷰</td>
+            <td class="st"><span class="badge b-hold">착수 전</span></td>
+            <td class="what">
+              점검 문서 완료. 리뷰 정책은 결정됨(상품당 1개, 작성 즉시 공개, 사진 선택).
+            </td>
+            <td class="what">사용자 프로필 단일 원본 미결정(착수 전 필수)</td>
+          </tr>
+          <tr>
+            <td class="name">B2 커뮤니티</td>
+            <td class="st"><span class="badge b-hold">착수 전</span></td>
+            <td class="what">
+              점검 문서 완료. 댓글 답글 출시, 즉시 공개, 상품 리뷰 투영 등 결정됨.
+            </td>
+            <td class="what">분류 표시명·번역표, 작성자 정보 출처 미결정</td>
+          </tr>
+          <tr>
+            <td class="name">B3 라이브·영상 허브</td>
+            <td class="st"><span class="badge b-hold">착수 전</span></td>
+            <td class="what">점검 문서 완료. 댓글·좋아요·알림·다시보기 구현 포함로 결정됨.</td>
+            <td class="what">외부 방송 제공자 계약·API 확인 필요</td>
+          </tr>
+          <tr>
+            <td class="name">B4 랭킹·브랜드·성장</td>
+            <td class="st"><span class="badge b-hold">착수 전</span></td>
+            <td class="what">
+              점검 문서 완료. 가짜 숫자·복제 상품 문제 규명, 찜은 기기 저장 방식으로 결정, 성분
+              후순위 확정.
+            </td>
+            <td class="what">랭킹 나머지 4축 산식 미결정</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+
+    <section class="actions">
+      <h3>대표님 결정·조치 대기 항목 — 남아있는 것만 (2026-09-10 기준)</h3>
+      <ul class="checklist">
+        <li>
+          <span class="chk"></span>
+          <span class="chk-label">
+            <span class="tag">[A1]</span>실서류로 실제 비교 테스트 실행
+            <span class="sub"
+              >지금까지는 실서류와 거의 같은 형태의 가안(합성 양식)으로만 검증 — 드라이브에 있는
+              진짜 서류로 한 번 더 돌려봐야 완료 처리. 운영 승인·API 키는 이미 완료.</span
+            >
+          </span>
+        </li>
+        <li>
+          <span class="chk"></span>
+          <span class="chk-label">
+            <span class="tag">[A1]</span>상세페이지 대조 — 프레임 님 실제 이미지 5장 최종 검증 1회
+            <span class="sub"
+              >태국어 상세페이지 이미지를 올리면 한국어로 쫙 정리해주는 기능은 이미 구축·실증
+              완료(9/9) — 채널에 이미지를 올리면 별도 요청 없이 봇이 바로 한국어 정리 답장까지
+              되도록 규칙 적용됨. 남은 건 프레임 님 실제 상세페이지 5장으로 마지막 확인 1회.</span
+            >
+          </span>
+        </li>
+        <li>
+          <span class="chk"></span>
+          <span class="chk-label">
+            <span class="tag">[A1]</span>금지성분 목록 정본 지정
+            <span class="sub"
+              >원격맥 드라이브 3,484건 전수 조사에서도 금지성분 목록 원본을 못 찾음 — 어떤
+              스프레드시트가 정본인지 대표님이 지정해야 대조 규칙 ①금지성분이 작동함.</span
+            >
+          </span>
+        </li>
+        <li>
+          <span class="chk"></span>
+          <span class="chk-label">
+            <span class="tag">[A4]</span>KPI 산식·실데이터 방식 최종 승인
+            <span class="sub"
+              >배포·감시·업무 보드까지는 완료됨. 시험 데이터 13건을 실데이터로 교체하려면 승인
+              필요.</span
+            >
+          </span>
+        </li>
+        <li>
+          <span class="chk"></span>
+          <span class="chk-label">
+            <span class="tag">[A0 · D7]</span>쇼피·틱톡 정식 API 신청 — 로그인 협조 1회
+            <span class="sub"
+              >결정 0007(a) 정식 API 진행은 이미 확정. 남은 건 셀러센터 계정으로 Shopee Open
+              Platform에 로그인하는 것 1회뿐(2FA 폰 승인 필요 — 사람만 할 수 있음). 로그인되면
+              신청서 초안은 준비돼 있음. 심사(승인)가 가장 오래 걸리는 구간이라 빨리 넣을수록
+              유리.</span
+            >
+          </span>
+        </li>
+        <li>
+          <span class="chk"></span>
+          <span class="chk-label">
+            <span class="tag">[B0]</span>노출된 Supabase 관리 토큰 직접 폐기·재발급 (보안 최우선)
+          </span>
+        </li>
+      </ul>
+      <div class="note">
+        9/7~9/10 사이에 종결된 대표님 항목: 자료 수집 방식(결정 0007 병행) · 구글 드라이브 연동 ·
+        /wait 연결 · A3 기억 원천("둘 다") · TFDA 샘플(드라이브에서 확보) · A1 운영 DB 승인·API 키 ·
+        KPI-v1(결정 0008, D1~D10 확정) · A2 버튼 분리 승인. 위 6개만 남았고, 이 중 A1 2건과 A0 D7은
+        대표님이 정보만 주시면 바로 진행됩니다.
+      </div>
+    </section>
+
+    <div class="foot">
+      머스트캇 전체 작업 현황판 · 마지막 갱신 2026-09-10 · 본 문서의 갱신 규칙은
+      docs/CX/tasks/A_TASKS_STATUS_TABLE.md 상단 참고
+    </div>
+  </body>
+</html>
