@@ -14,12 +14,20 @@
       <header id="board-header">
         <div>
           <p class="eyebrow">MUSTKHAT · TEAM</p>
-          <h1>팀 업무 보드</h1>
-          <p class="description">업무를 옮기며 팀의 흐름을 확인하세요.</p>
+          <h1 id="board-title">팀 업무 보드</h1>
+          <p class="description" id="board-description">
+            업무를 옮기며 팀의 흐름을 확인하세요.
+          </p>
         </div>
-        <div class="sync">
-          <span id="sync-status" role="status">보드를 불러오는 중…</span
-          ><button id="refresh" type="button">새로고침</button>
+        <div class="header-controls">
+          <div class="lang-toggle" role="group" aria-label="Language / ภาษา">
+            <button id="lang-ko" type="button" aria-pressed="true">한국어</button
+            ><button id="lang-th" type="button" aria-pressed="false">ไทย</button>
+          </div>
+          <div class="sync">
+            <span id="sync-status" role="status">보드를 불러오는 중…</span
+            ><button id="refresh" type="button">새로고침</button>
+          </div>
         </div>
       </header>
       <p id="notice" role="alert" hidden></p>
@@ -28,19 +36,7 @@
         aria-label="진행 중인 업무"
         aria-busy="true"
       ></section>
-      <section id="board-finish" aria-label="업무 종료">
-        <div class="finish-zone" data-target="completed">
-          <strong>완료</strong><span>카드를 놓고 확인하면 완료됩니다</span>
-        </div>
-        <div class="finish-zone" data-target="cancelled">
-          <strong>취소</strong><span>카드를 놓고 확인하면 취소됩니다</span>
-        </div>
-      </section>
-      <section id="board-closed" aria-labelledby="closed-title">
-        <h2 id="closed-title">최근 종료 <span id="closed-count"></span></h2>
-        <div id="closed-list"></div>
-      </section>
-      <p class="footnote">
+      <p class="footnote" id="footnote">
         9초마다 갱신 · A2 업무는 /wait에서 처리 · 카드 순서는 최근 변경순
       </p>
     </main>
@@ -49,7 +45,7 @@
         <h2 id="finish-title"></h2>
         <p id="finish-description"></p>
         <div class="dialog-actions">
-          <button value="cancel">돌아가기</button
+          <button value="cancel" id="finish-cancel">돌아가기</button
           ><button value="confirm" id="finish-confirm">확인</button>
         </div>
       </form>

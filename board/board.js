@@ -2,14 +2,106 @@
   "use strict";
   const API =
     "https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/team-reporting/board";
-  const labels = {
-    in_progress: "진행 중",
-    open: "시작 전",
-    waiting: "대기 중 (A2)",
-    blocked: "막힘",
-    completed: "완료",
-    cancelled: "취소",
+  const A2_DONE_BASE =
+    "https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/waiting-tracker/done";
+
+  // ── 언어(한국어/태국어) — 2026-09-10 사용자 요구: 상단 토글로 전환 ──────────
+  const STRINGS = {
+    ko: {
+      title: "팀 업무 보드",
+      description: "업무를 옮기며 팀의 흐름을 확인하세요.",
+      loading: "보드를 불러오는 중…",
+      refresh: "새로고침",
+      footnote: "9초마다 갱신 · A2 업무는 /wait에서 처리 · 카드 순서는 최근 변경순",
+      columns: { open: "시작 전", in_progress: "진행 중", blocked: "막힘", completed: "완료", cancelled: "취소" },
+      moveLabel: "상태 이동…",
+      moveAria: (title) => `${title} 상태 이동`,
+      a2Reply: "회신 완료",
+      a2Done: "작업 완료",
+      a2Managed: "A2 연동 · 처리 완료",
+      empty: "등록된 업무가 없습니다",
+      unowned: "담당 미상",
+      due: (date) => `마감 ${date}`,
+      needLink: "슬랙에서 받은 업무 보드 링크를 열어 주세요.",
+      needLinkStatus: "서명 링크 필요",
+      forbidden: "링크 권한을 확인해 주세요.",
+      refreshFailed: "갱신하지 못했습니다. 기존 화면을 유지하며 다시 시도합니다.",
+      badResponse: "보드 응답을 확인하지 못했습니다.",
+      connectionCheck: "연결을 확인해 주세요.",
+      connectionFailed: "연결 실패",
+      delayedStatus: (date) => `갱신 지연 · ${date} 기준`,
+      syncedStatus: (date) => `${date} 기준`,
+      savingStatus: "변경 저장 중…",
+      cantMoveHere: "현재 상태에서 이동할 수 없는 칸입니다.",
+      badMoveUrl: "잘못된 이동 주소입니다.",
+      saveFailed: "저장하지 못했습니다.",
+      movedTo: (label) => `${label} 상태로 옮겼습니다.`,
+      reverted: (message) => `${message} 화면을 원래 칸으로 되돌렸습니다. 서버 상태를 다시 확인합니다.`,
+      badActionUrl: "잘못된 처리 주소입니다.",
+      actionFailed: "처리하지 못했습니다.",
+      repliedDone: "회신 완료로 처리했습니다.",
+      workDone: "작업 완료로 처리했습니다.",
+      recheck: (message) => `${message} 화면을 다시 확인합니다.`,
+      confirmTitle: (label) => `${label} 처리할까요?`,
+      confirmMoveBody: (title) => `“${title}” 업무가 완료 칸으로 이동합니다. 보드에서는 되돌릴 수 없습니다.`,
+      confirmA2Body: (title) => `“${title}” 항목이 A2에서 최종 완료 처리됩니다. 되돌릴 수 없습니다.`,
+      dialogBack: "돌아가기",
+      dialogConfirm: "확인",
+    },
+    th: {
+      title: "บอร์ดงานทีม",
+      description: "ลากการ์ดงานเพื่อดูความคืบหน้าของทีม",
+      loading: "กำลังโหลดบอร์ด…",
+      refresh: "รีเฟรช",
+      footnote: "รีเฟรชทุก 9 วินาที · งาน A2 จัดการผ่าน /wait · เรียงตามการเปลี่ยนแปลงล่าสุด",
+      columns: { open: "ยังไม่เริ่ม", in_progress: "กำลังทำ", blocked: "ติดขัด", completed: "เสร็จแล้ว", cancelled: "ยกเลิก" },
+      moveLabel: "ย้ายสถานะ…",
+      moveAria: (title) => `ย้ายสถานะ ${title}`,
+      a2Reply: "ตอบกลับแล้ว",
+      a2Done: "งานเสร็จแล้ว",
+      a2Managed: "เชื่อม A2 · ดำเนินการเสร็จแล้ว",
+      empty: "ยังไม่มีงานที่บันทึกไว้",
+      unowned: "ไม่ระบุผู้รับผิดชอบ",
+      due: (date) => `ครบกำหนด ${date}`,
+      needLink: "กรุณาเปิดลิงก์บอร์ดงานที่ได้รับจาก Slack",
+      needLinkStatus: "ต้องใช้ลิงก์ที่มีลายเซ็น",
+      forbidden: "กรุณาตรวจสอบสิทธิ์ของลิงก์",
+      refreshFailed: "รีเฟรชไม่สำเร็จ จะลองใหม่โดยคงหน้าจอเดิมไว้",
+      badResponse: "ไม่สามารถตรวจสอบข้อมูลบอร์ดได้",
+      connectionCheck: "กรุณาตรวจสอบการเชื่อมต่อ",
+      connectionFailed: "เชื่อมต่อไม่สำเร็จ",
+      delayedStatus: (date) => `รีเฟรชล่าช้า · ข้อมูล ณ ${date}`,
+      syncedStatus: (date) => `ข้อมูล ณ ${date}`,
+      savingStatus: "กำลังบันทึกการเปลี่ยนแปลง…",
+      cantMoveHere: "ย้ายไปช่องนี้จากสถานะปัจจุบันไม่ได้",
+      badMoveUrl: "ที่อยู่สำหรับย้ายไม่ถูกต้อง",
+      saveFailed: "บันทึกไม่สำเร็จ",
+      movedTo: (label) => `ย้ายไปสถานะ ${label} แล้ว`,
+      reverted: (message) => `${message} ย้ายกลับช่องเดิมแล้ว กำลังตรวจสอบสถานะจากเซิร์ฟเวอร์อีกครั้ง`,
+      badActionUrl: "ที่อยู่สำหรับดำเนินการไม่ถูกต้อง",
+      actionFailed: "ดำเนินการไม่สำเร็จ",
+      repliedDone: "บันทึกเป็นตอบกลับแล้ว",
+      workDone: "บันทึกเป็นงานเสร็จแล้ว",
+      recheck: (message) => `${message} กำลังตรวจสอบหน้าจออีกครั้ง`,
+      confirmTitle: (label) => `ยืนยัน "${label}" หรือไม่?`,
+      confirmMoveBody: (title) => `งาน “${title}” จะย้ายไปช่องเสร็จสิ้น ย้อนกลับในบอร์ดนี้ไม่ได้`,
+      confirmA2Body: (title) => `รายการ “${title}” จะถูกปิดงานถาวรใน A2 ย้อนกลับไม่ได้`,
+      dialogBack: "กลับ",
+      dialogConfirm: "ยืนยัน",
+    },
   };
+  let lang = localStorage.getItem("board-lang") === "th" ? "th" : "ko";
+  const t = () => STRINGS[lang];
+
+  // 2026-09-10: 시작 전 → 진행 중 → 막힘 → 완료 4칸으로 통일한다(완료·취소를 화면
+  // 아래 별도 목록으로 두던 것을 없애고 진짜 4번째 칸으로 만듦). A2(waiting-tracker)의
+  // "waiting"·"replied" 상태는 별도 칸 없이 진행 중 칸에 같이 보여준다(둘 다 실제로
+  // 진행 중인 일이라서) — 대신 카드에 A2 표시와 실제 회신/작업완료 버튼을 넣는다.
+  const COLUMN_ORDER = ["open", "in_progress", "blocked", "completed"];
+  const inColumn = (item, column) =>
+    column === "in_progress"
+      ? item.status === "in_progress" || item.status === "waiting"
+      : item.status === column;
   const transitions = {
     open: ["in_progress", "cancelled"],
     in_progress: ["open", "blocked", "completed", "cancelled"],
@@ -42,7 +134,10 @@
   const allowed = (item, target) =>
     !managed(item) &&
     transitions[item.status]?.includes(target) &&
-    !!item.moves?.[target];
+    !!item.moves?.[target] &&
+    // 드래그로는 "완료"까지만 보낼 수 있다 — "취소"는 실수로 카드를 놓쳐 취소되는
+    // 사고를 막기 위해 카드의 상태 이동 드롭다운에서만 고르게 한다(2026-09-10).
+    target !== "cancelled";
   const held = () =>
     dragging || busy || document.activeElement?.tagName === "SELECT";
   function node(tag, className, text) {
@@ -56,113 +151,155 @@
     $("notice").hidden = !message;
   }
   function owner(item) {
-    const raw = item.ownerName || "담당 미상";
+    const raw = item.ownerName || t().unowned;
     return names[raw.replace(/^<@|>$/g, "")] || raw;
   }
+  function buildActiveCard(item) {
+    const card = node("article", "card");
+    card.dataset.id = item.id;
+    card.draggable =
+      !busy && !managed(item) && Object.keys(item.moves || {}).length > 0;
+    card.append(node("h3", "", item.title));
+    const meta = node("div", "card-meta");
+    if (managed(item)) meta.append(node("span", "a2-tag", "A2"));
+    const name = owner(item);
+    meta.append(
+      node("span", "avatar", name.slice(0, 1)),
+      node("span", "", name),
+    );
+    if (item.dueDate) {
+      const today = new Date().toLocaleDateString("sv-SE");
+      const due = node("span", "due", t().due(item.dueDate));
+      if (item.dueDate <= today) due.classList.add("urgent");
+      meta.append(due);
+    }
+    card.append(meta);
+    if (managed(item)) {
+      const actions = node("div", "actions");
+      if (item.a2Actions?.reply) {
+        const btn = node("button", "a2-reply", t().a2Reply);
+        btn.type = "button";
+        btn.disabled = busy;
+        btn.addEventListener("click", () =>
+          a2Action(item, "reply", item.a2Actions.reply),
+        );
+        actions.append(btn);
+      }
+      if (item.a2Actions?.done) {
+        const btn = node("button", "a2-done", t().a2Done);
+        btn.type = "button";
+        btn.disabled = busy;
+        btn.addEventListener("click", () =>
+          a2Action(item, "done", item.a2Actions.done),
+        );
+        actions.append(btn);
+      }
+      if (actions.children.length) card.append(actions);
+      else card.append(node("p", "managed", t().a2Managed));
+    } else {
+      const select = node("select");
+      select.setAttribute("aria-label", t().moveAria(item.title));
+      select.disabled = busy;
+      select.append(new Option(t().moveLabel, ""));
+      for (const target of transitions[item.status] || [])
+        if (
+          !managed(item) &&
+          transitions[item.status]?.includes(target) &&
+          item.moves?.[target]
+        )
+          select.append(new Option(t().columns[target], target));
+      select.addEventListener("change", () => {
+        const target = select.value;
+        select.value = "";
+        select.blur();
+        if (target) move(item, target);
+      });
+      select.addEventListener("blur", () => setTimeout(flush, 0));
+      card.append(select);
+    }
+    card.addEventListener("dragstart", (event) => {
+      if (
+        !card.draggable ||
+        busy ||
+        managed(item) ||
+        event.target.closest("select")
+      ) {
+        event.preventDefault();
+        return;
+      }
+      dragging = item;
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", item.id);
+      card.classList.add("dragging");
+      document
+        .querySelectorAll("[data-target]")
+        .forEach((zone) =>
+          zone.classList.add(
+            allowed(item, zone.dataset.target)
+              ? "drop-allowed"
+              : "drop-disabled",
+          ),
+        );
+    });
+    card.addEventListener("dragend", endDrag);
+    return card;
+  }
+  function buildClosedCard(item) {
+    const card = node("article", "card closed");
+    card.dataset.id = item.id;
+    card.append(node("h3", "", item.title));
+    const meta = node("div", "card-meta");
+    meta.append(
+      node("span", `closed-label ${item.status}`, t().columns[item.status]),
+      node("span", "", owner(item)),
+    );
+    card.append(meta);
+    return card;
+  }
+  function renderChrome() {
+    document.documentElement.lang = lang;
+    $("board-title").textContent = t().title;
+    $("board-description").textContent = t().description;
+    $("refresh").textContent = t().refresh;
+    $("footnote").textContent = t().footnote;
+    $("lang-ko").setAttribute("aria-pressed", String(lang === "ko"));
+    $("lang-th").setAttribute("aria-pressed", String(lang === "th"));
+  }
   function render() {
+    renderChrome();
     if (!state) return;
     const columns = document.createDocumentFragment();
-    for (const status of ["in_progress", "open", "waiting", "blocked"]) {
-      const items = state.items.filter((item) => item.status === status);
-      const column = node("section", "column");
-      column.dataset.target = status;
-      column.id = `board-column-${status}`;
+    for (const column of COLUMN_ORDER) {
+      const items =
+        column === "completed"
+          ? state.completed
+          : state.items.filter((item) => inColumn(item, column));
+      const section = node("section", "column");
+      section.id = `board-column-${column}`;
       const header = node("div", "column-header");
       header.append(
         node("span", "dot"),
-        node("h2", "", labels[status]),
+        node("h2", "", t().columns[column]),
         node("span", "count", String(items.length)),
       );
       const cards = node("div", "cards");
-      for (const item of items) {
-        const card = node("article", "card");
-        card.dataset.id = item.id;
-        card.draggable =
-          !busy && !managed(item) && Object.keys(item.moves || {}).length > 0;
-        card.append(node("h3", "", item.title));
-        const meta = node("div", "card-meta");
-        const name = owner(item);
-        meta.append(
-          node("span", "avatar", name.slice(0, 1)),
-          node("span", "", name),
+      // "완료" 칸은 드래그로는 완료 처리만 받는다(취소는 드롭다운 전용, allowed() 참고).
+      section.dataset.target = column;
+      for (const item of items)
+        cards.append(
+          column === "completed" ? buildClosedCard(item) : buildActiveCard(item),
         );
-        if (item.dueDate) {
-          const today = new Date().toLocaleDateString("sv-SE");
-          const due = node("span", "due", `마감 ${item.dueDate}`);
-          if (item.dueDate <= today) due.classList.add("urgent");
-          meta.append(due);
-        }
-        card.append(meta);
-        if (managed(item))
-          card.append(node("p", "managed", "A2 연동 · /wait에서 처리"));
-        else {
-          const select = node("select");
-          select.setAttribute("aria-label", `${item.title} 상태 이동`);
-          select.disabled = busy;
-          select.append(new Option("상태 이동…", ""));
-          for (const target of transitions[item.status] || [])
-            if (allowed(item, target))
-              select.append(new Option(labels[target], target));
-          select.addEventListener("change", () => {
-            const target = select.value;
-            select.value = "";
-            select.blur();
-            if (target) move(item, target);
-          });
-          select.addEventListener("blur", () => setTimeout(flush, 0));
-          card.append(select);
-        }
-        card.addEventListener("dragstart", (event) => {
-          if (
-            !card.draggable ||
-            busy ||
-            managed(item) ||
-            event.target.closest("select")
-          ) {
-            event.preventDefault();
-            return;
-          }
-          dragging = item;
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData("text/plain", item.id);
-          card.classList.add("dragging");
-          document
-            .querySelectorAll("[data-target]")
-            .forEach((zone) =>
-              zone.classList.add(
-                allowed(item, zone.dataset.target)
-                  ? "drop-allowed"
-                  : "drop-disabled",
-              ),
-            );
-        });
-        card.addEventListener("dragend", endDrag);
-        cards.append(card);
-      }
-      if (!items.length)
-        cards.append(node("p", "empty", "등록된 업무가 없습니다"));
-      column.append(header, cards);
-      columns.append(column);
+      if (!items.length) cards.append(node("p", "empty", t().empty));
+      section.append(header, cards);
+      columns.append(section);
     }
     $("board-columns").replaceChildren(columns);
     $("board-columns").setAttribute("aria-busy", String(busy));
-    const closed = document.createDocumentFragment();
-    for (const item of state.completed) {
-      const row = node("div", "closed-row");
-      row.dataset.id = item.id;
-      row.append(
-        node("span", `closed-label ${item.status}`, labels[item.status]),
-        node("span", "closed-title", item.title),
-        node("span", "owner", owner(item)),
-      );
-      closed.append(row);
-    }
-    if (!state.completed.length)
-      closed.append(node("p", "empty", "최근 종료된 업무가 없습니다"));
-    $("closed-list").replaceChildren(closed);
-    $("closed-count").textContent = String(state.completed.length);
-    $("sync-status").textContent =
-      `${new Date(state.generatedAt).toLocaleString("ko-KR", { hour12: false })} 기준`;
+    $("sync-status").textContent = t().syncedStatus(
+      new Date(state.generatedAt).toLocaleString(lang === "th" ? "th-TH" : "ko-KR", {
+        hour12: false,
+      }),
+    );
     $("refresh").disabled = busy;
   }
   function flush() {
@@ -189,8 +326,8 @@
   async function load() {
     if (loading || busy || document.hidden) return;
     if (!params.get("v") || !params.get("sig")) {
-      notice("슬랙에서 받은 업무 보드 링크를 열어 주세요.");
-      $("sync-status").textContent = "서명 링크 필요";
+      notice(t().needLink);
+      $("sync-status").textContent = t().needLinkStatus;
       return;
     }
     loading = true;
@@ -204,12 +341,12 @@
       if (!response.ok)
         throw new Error(
           response.status === 401 || response.status === 403
-            ? "링크 권한을 확인해 주세요."
-            : "갱신하지 못했습니다. 기존 화면을 유지하며 다시 시도합니다.",
+            ? t().forbidden
+            : t().refreshFailed,
         );
       const data = await response.json();
       if (!Array.isArray(data.items) || !Array.isArray(data.completed))
-        throw new Error("보드 응답을 확인하지 못했습니다.");
+        throw new Error(t().badResponse);
       if (started !== epoch) return;
       if (held()) deferred = data;
       else {
@@ -218,20 +355,20 @@
       }
     } catch (error) {
       if (started === epoch) {
-        notice(error.message || "연결을 확인해 주세요.");
+        notice(error.message || t().connectionCheck);
         $("sync-status").textContent = state
-          ? `갱신 지연 · ${new Date(state.generatedAt).toLocaleString("ko-KR")} 기준`
-          : "연결 실패";
+          ? t().delayedStatus(new Date(state.generatedAt).toLocaleString(lang === "th" ? "th-TH" : "ko-KR"))
+          : t().connectionFailed;
       }
     } finally {
       loading = false;
     }
   }
-  function confirmFinish(item, target) {
-    $("finish-title").textContent = `업무를 ${labels[target]}할까요?`;
-    $("finish-description").textContent =
-      `“${item.title}” 업무가 최근 종료로 이동합니다. 보드에서는 되돌릴 수 없습니다.`;
-    $("finish-confirm").textContent = labels[target];
+  function confirmFinish(label, description) {
+    $("finish-title").textContent = t().confirmTitle(label);
+    $("finish-description").textContent = description;
+    $("finish-confirm").textContent = label;
+    $("finish-cancel").textContent = t().dialogBack;
     const dialog = $("finish-dialog");
     dialog.returnValue = "";
     dialog.showModal();
@@ -245,8 +382,8 @@
   }
   async function move(item, target) {
     if (busy) return;
-    if (!allowed(item, target)) {
-      notice("현재 상태에서 이동할 수 없는 칸입니다.");
+    if (!item.moves?.[target]) {
+      notice(t().cantMoveHere);
       endDrag();
       return;
     }
@@ -256,7 +393,7 @@
     endDrag();
     if (
       ["completed", "cancelled"].includes(target) &&
-      !(await confirmFinish(item, target))
+      !(await confirmFinish(t().columns[target], t().confirmMoveBody(item.title)))
     ) {
       busy = false;
       render();
@@ -270,7 +407,7 @@
       state.completed = [moved, ...state.completed].slice(0, 12);
     else state.items.unshift(moved);
     render();
-    $("sync-status").textContent = "변경 저장 중…";
+    $("sync-status").textContent = t().savingStatus;
     notice("");
     try {
       const actionUrl = new URL(item.moves[target]);
@@ -278,21 +415,54 @@
         actionUrl.origin !== url.origin ||
         actionUrl.pathname !== `${url.pathname}/action`
       )
-        throw new Error("잘못된 이동 주소입니다.");
+        throw new Error(t().badMoveUrl);
       const response = await fetch(actionUrl, {
         method: "POST",
         headers: { Accept: "application/json" },
         signal: AbortSignal.timeout(15000),
       });
       const result = await response.json();
-      if (!response.ok || !result.ok)
-        throw new Error(result.message || "저장하지 못했습니다.");
-      notice(`${labels[target]} 상태로 옮겼습니다.`);
+      if (!response.ok || !result.ok) throw new Error(result.message || t().saveFailed);
+      notice(t().movedTo(t().columns[target]));
     } catch (error) {
       state = before;
-      notice(
-        `${error.message} 화면을 원래 칸으로 되돌렸습니다. 서버 상태를 다시 확인합니다.`,
-      );
+      notice(t().reverted(error.message));
+    } finally {
+      busy = false;
+      render();
+      load();
+    }
+  }
+  // A2(waiting-tracker) [회신 완료]/[작업 완료] — team-reporting의 move()와 다른
+  // 엔드포인트(waiting-tracker/done)를 부른다. A2 원본이 진짜 소스이므로 이 보드는
+  // 결과를 낙관적으로 미리 그리지 않고, 처리 후 항상 서버에서 다시 불러온다.
+  async function a2Action(item, kind, actionUrl) {
+    if (busy) return;
+    if (
+      kind === "done" &&
+      !(await confirmFinish(t().a2Done, t().confirmA2Body(item.title)))
+    )
+      return;
+    busy = true;
+    ++epoch;
+    deferred = null;
+    render();
+    $("sync-status").textContent = t().savingStatus;
+    notice("");
+    try {
+      const target = new URL(actionUrl);
+      const base = new URL(A2_DONE_BASE);
+      if (target.origin !== base.origin || target.pathname !== base.pathname)
+        throw new Error(t().badActionUrl);
+      const response = await fetch(target, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(15000),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.message || t().actionFailed);
+      notice(kind === "reply" ? t().repliedDone : t().workDone);
+    } catch (error) {
+      notice(t().recheck(error.message));
     } finally {
       busy = false;
       render();
@@ -320,11 +490,24 @@
     if (zone) move(item, zone.dataset.target);
     else endDrag();
   });
+  function setLang(next) {
+    if (next === lang) return;
+    lang = next;
+    try {
+      localStorage.setItem("board-lang", lang);
+    } catch {
+      // 저장 안 돼도(사생활 보호 모드 등) 이번 화면 전환 자체는 계속 동작한다.
+    }
+    render();
+  }
+  $("lang-ko").addEventListener("click", () => setLang("ko"));
+  $("lang-th").addEventListener("click", () => setLang("th"));
   $("refresh").addEventListener("click", load);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) load();
   });
   window.addEventListener("online", load);
+  renderChrome();
   setInterval(load, 9000);
   load();
 })();

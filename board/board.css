@@ -34,6 +34,7 @@ body {
     14px/1.5 -apple-system,
     BlinkMacSystemFont,
     "Apple SD Gothic Neo",
+    "Noto Sans Thai",
     sans-serif;
 }
 h1,
@@ -81,6 +82,31 @@ select:disabled {
 #board-header > div:first-child {
   display: grid;
   gap: var(--space-1);
+}
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px;
+  background: var(--surface);
+}
+.lang-toggle button {
+  border: none;
+  border-radius: 999px;
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.lang-toggle button[aria-pressed="true"] {
+  background: var(--column);
+  color: var(--text);
+  font-weight: 600;
 }
 .eyebrow {
   font-size: 11px;
@@ -147,14 +173,13 @@ h2 {
 [data-target="in_progress"] .dot {
   background: var(--status-progress);
 }
-[data-target="waiting"] .dot {
-  background: var(--status-waiting);
-}
 [data-target="blocked"] .dot {
   background: var(--status-blocked);
 }
-.count,
-#closed-count {
+[data-target="completed"] .dot {
+  background: var(--status-completed);
+}
+.count {
   color: var(--muted);
   font-size: 12px;
   font-weight: 400;
@@ -186,6 +211,9 @@ h2 {
   transform: rotate(-1deg);
   box-shadow: var(--shadow);
 }
+.card.closed {
+  opacity: 0.85;
+}
 .card h3 {
   font-size: 14px;
   line-height: 1.5;
@@ -199,6 +227,15 @@ h2 {
   gap: var(--space-2);
   font-size: 12px;
   color: var(--muted);
+}
+.a2-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--status-waiting);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-small);
+  padding: 0 var(--space-1);
 }
 .avatar {
   display: inline-grid;
@@ -227,31 +264,25 @@ h2 {
   font-size: 12px;
   padding: var(--space-1) var(--space-2);
 }
+.card .actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.card .actions button {
+  flex: 1;
+  font-size: 12px;
+  padding: var(--space-1) var(--space-2);
+}
+.card .actions .a2-done {
+  background: var(--status-completed);
+  border-color: var(--status-completed);
+  color: white;
+}
 .empty {
   color: var(--muted);
   font-size: 12px;
   padding: var(--space-6);
   text-align: center;
-}
-#board-finish {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-.finish-zone {
-  display: flex;
-  gap: var(--space-3);
-  align-items: center;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius-card);
-  padding: var(--space-4);
-  color: var(--muted);
-}
-.finish-zone span {
-  font-size: 12px;
-}
-.finish-zone[data-target="completed"] strong {
-  color: var(--status-completed);
 }
 .drop-disabled {
   opacity: 0.38;
@@ -270,32 +301,9 @@ h2 {
   background: var(--status-progress);
   border-radius: var(--radius-small);
 }
-#board-closed {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-#closed-list {
-  border-top: 1px solid var(--line);
-}
-.closed-row {
-  display: flex;
-  gap: var(--space-3);
-  align-items: baseline;
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--line);
-}
-.closed-row .closed-title {
-  flex: 1;
-  overflow-wrap: anywhere;
-}
-.closed-row .owner {
-  color: var(--muted);
-  font-size: 12px;
-}
 .closed-label {
   color: var(--status-neutral);
-  font-size: 12px;
+  font-weight: 600;
 }
 .closed-label.completed {
   color: var(--status-completed);
@@ -333,14 +341,12 @@ dialog h2 {
     align-items: start;
     flex-direction: column;
   }
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
   #board-columns {
     grid-template-columns: repeat(4, 280px);
-  }
-  #board-finish {
-    grid-template-columns: 1fr;
-  }
-  .closed-row {
-    flex-wrap: wrap;
   }
 }
 @media (prefers-reduced-motion: reduce) {
