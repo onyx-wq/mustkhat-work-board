@@ -144,7 +144,7 @@
   // 보고서와 같은 핵심 칸을 보여준다. A2 원본 대기는 별도 칸을 만들지 않고
   // 진행 중 흐름에서 A2 버튼으로 처리한다. 완료·취소된 카드도 다시 활성 칸으로
   // 되돌릴 수 있게 한다.
-  const COLUMN_ORDER = ["open", "in_progress", "blocked", "completed"];
+  const COLUMN_ORDER = ["open", "in_progress", "blocked", "completed", "cancelled"];
   const inColumn = (item, column) =>
     column === "in_progress"
       ? item.status === "in_progress" || item.status === "waiting"
@@ -323,10 +323,9 @@
     if (!state) return;
     const columns = document.createDocumentFragment();
     for (const column of COLUMN_ORDER) {
-      const items =
-        column === "completed"
-          ? state.completed
-          : state.items.filter((item) => inColumn(item, column));
+      const items = ["completed", "cancelled"].includes(column)
+        ? state.completed.filter((item) => item.status === column)
+        : state.items.filter((item) => inColumn(item, column));
       const section = node("section", "column");
       section.id = `board-column-${column}`;
       const header = node("div", "column-header");
@@ -340,7 +339,7 @@
       section.dataset.target = column;
       for (const item of items)
         cards.append(
-          column === "completed"
+          ["completed", "cancelled"].includes(column)
             ? buildClosedCard(item)
             : buildActiveCard(item),
         );
