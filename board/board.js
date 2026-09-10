@@ -150,12 +150,12 @@
       ? item.status === "in_progress" || item.status === "waiting"
       : item.status === column;
   const transitions = {
-    open: ["in_progress", "cancelled"],
+    open: ["in_progress", "blocked", "completed", "cancelled"],
     in_progress: ["open", "blocked", "completed", "cancelled"],
-    blocked: ["in_progress", "cancelled"],
-    waiting: [],
-    completed: ["in_progress", "open", "blocked"],
-    cancelled: ["in_progress", "open", "blocked"],
+    blocked: ["open", "in_progress", "completed", "cancelled"],
+    waiting: ["open", "in_progress", "blocked", "completed", "cancelled"],
+    completed: ["open", "in_progress", "blocked", "cancelled"],
+    cancelled: ["open", "in_progress", "blocked", "completed"],
   };
   const names = {
     U07G9TQTJDC: "전영찬",
@@ -179,11 +179,8 @@
     epoch = 0;
   const managed = (item) => item.externalId?.startsWith("wait:");
   const allowed = (item, target) =>
-    (!managed(item) || ["completed", "cancelled"].includes(item.status)) &&
     transitions[item.status]?.includes(target) &&
-    !!item.moves?.[target] &&
-    // 취소는 실수 방지를 위해 드롭 대신 상태 선택 메뉴에서만 고르게 한다.
-    target !== "cancelled";
+    !!item.moves?.[target];
   const held = () =>
     dragging || busy || document.activeElement?.tagName === "SELECT";
   function node(tag, className, text) {
@@ -204,7 +201,7 @@
     const card = node("article", "card");
     card.dataset.id = item.id;
     card.draggable =
-      !busy && !managed(item) && Object.keys(item.moves || {}).length > 0;
+      !busy && Object.keys(item.moves || {}).length > 0;
     card.append(node("h3", "", item.title));
     const meta = node("div", "card-meta");
     if (showA2Tag && managed(item)) meta.append(node("span", "a2-tag", "A2"));
@@ -268,7 +265,6 @@
       if (
         !card.draggable ||
         busy ||
-        managed(item) ||
         event.target.closest("select")
       ) {
         event.preventDefault();
