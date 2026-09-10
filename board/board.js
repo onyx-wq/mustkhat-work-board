@@ -64,7 +64,6 @@
       addTitleLabel: "업무 제목",
       addTitlePlaceholder: "예: 상세페이지 초안 작업",
       addAssigneeLabel: "담당자",
-      addSelfOption: "본인",
       addConfirm: "등록",
       addTitleRequired: "업무 제목을 입력해 주세요.",
       addCreating: "등록 중…",
@@ -129,7 +128,6 @@
       addTitleLabel: "ชื่องาน",
       addTitlePlaceholder: "เช่น ร่างหน้ารายละเอียดสินค้า",
       addAssigneeLabel: "ผู้รับผิดชอบ",
-      addSelfOption: "ตัวเอง",
       addConfirm: "บันทึก",
       addTitleRequired: "กรุณากรอกชื่องาน",
       addCreating: "กำลังบันทึก…",
@@ -202,14 +200,14 @@
     const raw = item.ownerName || t().unowned;
     return names[raw.replace(/^<@|>$/g, "")] || raw;
   }
-  function buildActiveCard(item) {
+  function buildActiveCard(item, { showA2Tag = true } = {}) {
     const card = node("article", "card");
     card.dataset.id = item.id;
     card.draggable =
       !busy && !managed(item) && Object.keys(item.moves || {}).length > 0;
     card.append(node("h3", "", item.title));
     const meta = node("div", "card-meta");
-    if (managed(item)) meta.append(node("span", "a2-tag", "A2"));
+    if (showA2Tag && managed(item)) meta.append(node("span", "a2-tag", "A2"));
     const name = owner(item);
     meta.append(
       node("span", "avatar", name.slice(0, 1)),
@@ -294,7 +292,7 @@
     return card;
   }
   function buildClosedCard(item) {
-    const card = buildActiveCard(item);
+    const card = buildActiveCard(item, { showA2Tag: false });
     card.classList.add("closed");
     return card;
   }
@@ -316,7 +314,6 @@
     const assignee = $("add-task-assignee");
     const kept = assignee.value;
     assignee.replaceChildren(
-      new Option(t().addSelfOption, ""),
       ...Object.entries(names).map(([id, name]) => new Option(name, id)),
     );
     assignee.value = kept;
