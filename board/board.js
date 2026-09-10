@@ -12,7 +12,8 @@
       description: "업무를 옮기며 팀의 흐름을 확인하세요.",
       loading: "보드를 불러오는 중…",
       refresh: "새로고침",
-      footnote: "9초마다 갱신 · A2 업무는 /wait에서 처리 · 카드 순서는 최근 변경순",
+      footnote:
+        "9초마다 갱신 · A2 업무는 /wait에서 처리 · 카드 순서는 최근 변경순",
       columns: {
         open: "시작 전",
         in_progress: "진행 중",
@@ -32,7 +33,8 @@
       needLink: "슬랙에서 받은 업무 보드 링크를 열어 주세요.",
       needLinkStatus: "서명 링크 필요",
       forbidden: "링크 권한을 확인해 주세요.",
-      refreshFailed: "갱신하지 못했습니다. 기존 화면을 유지하며 다시 시도합니다.",
+      refreshFailed:
+        "갱신하지 못했습니다. 기존 화면을 유지하며 다시 시도합니다.",
       badResponse: "보드 응답을 확인하지 못했습니다.",
       connectionCheck: "연결을 확인해 주세요.",
       connectionFailed: "연결 실패",
@@ -42,16 +44,19 @@
       cantMoveHere: "현재 상태에서 이동할 수 없는 칸입니다.",
       badMoveUrl: "잘못된 이동 주소입니다.",
       saveFailed: "저장하지 못했습니다.",
-      movedTo: (label) => `${label} 상태로 옮겼습니다.`,
-      reverted: (message) => `${message} 화면을 원래 칸으로 되돌렸습니다. 서버 상태를 다시 확인합니다.`,
+      movedTo: (label) => `팀 업무 보드 · ${label} 상태로 옮겼습니다.`,
+      reverted: (message) =>
+        `${message} 화면을 원래 칸으로 되돌렸습니다. 서버 상태를 다시 확인합니다.`,
       badActionUrl: "잘못된 처리 주소입니다.",
       actionFailed: "처리하지 못했습니다.",
       repliedDone: "회신 완료로 처리했습니다.",
       workDone: "작업 완료로 처리했습니다.",
       recheck: (message) => `${message} 화면을 다시 확인합니다.`,
       confirmTitle: (label) => `${label} 처리할까요?`,
-      confirmMoveBody: (title) => `“${title}” 업무가 완료 칸으로 이동합니다. 보드에서는 되돌릴 수 없습니다.`,
-      confirmA2Body: (title) => `“${title}” 항목이 A2에서 최종 완료 처리됩니다. 되돌릴 수 없습니다.`,
+      confirmMoveBody: (title) =>
+        `“${title}” 업무가 완료 칸으로 이동합니다. 보드에서는 되돌릴 수 없습니다.`,
+      confirmA2Body: (title) =>
+        `“${title}” 항목이 A2에서 최종 완료 처리됩니다. 되돌릴 수 없습니다.`,
       dialogBack: "돌아가기",
       dialogConfirm: "확인",
       addTask: "+ 새 업무",
@@ -64,7 +69,8 @@
       addTitleRequired: "업무 제목을 입력해 주세요.",
       addCreating: "등록 중…",
       addCreated: (title) => `“${title}” 업무를 등록했습니다.`,
-      addAssigned: (title, name) => `“${title}” 업무를 ${name}님에게 배정하고 알림을 보냈습니다.`,
+      addAssigned: (title, name) =>
+        `“${title}” 업무를 ${name}님에게 배정하고 알림을 보냈습니다.`,
       addFailed: "등록하지 못했습니다.",
     },
     th: {
@@ -72,7 +78,8 @@
       description: "ลากการ์ดงานเพื่อดูความคืบหน้าของทีม",
       loading: "กำลังโหลดบอร์ด…",
       refresh: "รีเฟรช",
-      footnote: "รีเฟรชทุก 9 วินาที · งาน A2 จัดการผ่าน /wait · เรียงตามการเปลี่ยนแปลงล่าสุด",
+      footnote:
+        "รีเฟรชทุก 9 วินาที · งาน A2 จัดการผ่าน /wait · เรียงตามการเปลี่ยนแปลงล่าสุด",
       columns: {
         open: "ยังไม่เริ่ม",
         in_progress: "กำลังทำ",
@@ -102,16 +109,19 @@
       cantMoveHere: "ย้ายไปช่องนี้จากสถานะปัจจุบันไม่ได้",
       badMoveUrl: "ที่อยู่สำหรับย้ายไม่ถูกต้อง",
       saveFailed: "บันทึกไม่สำเร็จ",
-      movedTo: (label) => `ย้ายไปสถานะ ${label} แล้ว`,
-      reverted: (message) => `${message} ย้ายกลับช่องเดิมแล้ว กำลังตรวจสอบสถานะจากเซิร์ฟเวอร์อีกครั้ง`,
+      movedTo: (label) => `บอร์ดงานทีม · ย้ายไปสถานะ ${label} แล้ว`,
+      reverted: (message) =>
+        `${message} ย้ายกลับช่องเดิมแล้ว กำลังตรวจสอบสถานะจากเซิร์ฟเวอร์อีกครั้ง`,
       badActionUrl: "ที่อยู่สำหรับดำเนินการไม่ถูกต้อง",
       actionFailed: "ดำเนินการไม่สำเร็จ",
       repliedDone: "บันทึกเป็นตอบกลับแล้ว",
       workDone: "บันทึกเป็นงานเสร็จแล้ว",
       recheck: (message) => `${message} กำลังตรวจสอบหน้าจออีกครั้ง`,
       confirmTitle: (label) => `ยืนยัน "${label}" หรือไม่?`,
-      confirmMoveBody: (title) => `งาน “${title}” จะย้ายไปช่องเสร็จสิ้น ย้อนกลับในบอร์ดนี้ไม่ได้`,
-      confirmA2Body: (title) => `รายการ “${title}” จะถูกปิดงานถาวรใน A2 ย้อนกลับไม่ได้`,
+      confirmMoveBody: (title) =>
+        `งาน “${title}” จะย้ายไปช่องเสร็จสิ้น ย้อนกลับในบอร์ดนี้ไม่ได้`,
+      confirmA2Body: (title) =>
+        `รายการ “${title}” จะถูกปิดงานถาวรใน A2 ย้อนกลับไม่ได้`,
       dialogBack: "กลับ",
       dialogConfirm: "ยืนยัน",
       addTask: "+ งานใหม่",
@@ -124,7 +134,8 @@
       addTitleRequired: "กรุณากรอกชื่องาน",
       addCreating: "กำลังบันทึก…",
       addCreated: (title) => `บันทึกงาน “${title}” แล้ว`,
-      addAssigned: (title, name) => `มอบหมายงาน “${title}” ให้ ${name} และส่งการแจ้งเตือนแล้ว`,
+      addAssigned: (title, name) =>
+        `มอบหมายงาน “${title}” ให้ ${name} และส่งการแจ้งเตือนแล้ว`,
       addFailed: "บันทึกไม่สำเร็จ",
     },
   };
@@ -132,24 +143,21 @@
   const t = () => STRINGS[lang];
 
   // 2026-09-10 사용자 요구("이거랑 맞춰져야하는데, 안맞아"): 웹 보드를 슬랙 DM
-  // 보고서와 완전히 같은 칸 구조로 맞춘다. 칸 순서는 core.ts WORK_BOARD_COLUMNS
-  // (진행 중/시작 전/대기 중(A2)/막힘) + 완료 5칸. 대기 중(A2) 칸엔 A2 원본이
-  // "waiting"인 항목만 들어가고, 막힘→진행 중 복귀 이동도 드래그로 가능하게 한다.
-  const COLUMN_ORDER = [
-    "in_progress",
-    "open",
-    "waiting",
-    "blocked",
-    "completed",
-  ];
-  const inColumn = (item, column) => item.status === column;
+  // 보고서와 같은 핵심 칸을 보여준다. A2 원본 대기는 별도 칸을 만들지 않고
+  // 진행 중 흐름에서 A2 버튼으로 처리한다. 완료·취소된 카드도 다시 활성 칸으로
+  // 되돌릴 수 있게 한다.
+  const COLUMN_ORDER = ["in_progress", "open", "blocked", "completed"];
+  const inColumn = (item, column) =>
+    column === "in_progress"
+      ? item.status === "in_progress" || item.status === "waiting"
+      : item.status === column;
   const transitions = {
     open: ["in_progress", "cancelled"],
     in_progress: ["open", "blocked", "completed", "cancelled"],
     blocked: ["in_progress", "cancelled"],
     waiting: [],
-    completed: [],
-    cancelled: [],
+    completed: ["in_progress", "open", "blocked"],
+    cancelled: ["in_progress", "open", "blocked"],
   };
   const names = {
     U07G9TQTJDC: "전영찬",
@@ -176,8 +184,7 @@
     !managed(item) &&
     transitions[item.status]?.includes(target) &&
     !!item.moves?.[target] &&
-    // 드래그로는 "완료"까지만 보낼 수 있다 — "취소"는 실수로 카드를 놓쳐 취소되는
-    // 사고를 막기 위해 카드의 상태 이동 드롭다운에서만 고르게 한다(2026-09-10).
+    // 취소는 실수 방지를 위해 드롭 대신 상태 선택 메뉴에서만 고르게 한다.
     target !== "cancelled";
   const held = () =>
     dragging || busy || document.activeElement?.tagName === "SELECT";
@@ -286,15 +293,8 @@
     return card;
   }
   function buildClosedCard(item) {
-    const card = node("article", "card closed");
-    card.dataset.id = item.id;
-    card.append(node("h3", "", item.title));
-    const meta = node("div", "card-meta");
-    meta.append(
-      node("span", `closed-label ${item.status}`, t().columns[item.status]),
-      node("span", "", owner(item)),
-    );
-    card.append(meta);
+    const card = buildActiveCard(item);
+    card.classList.add("closed");
     return card;
   }
   function renderChrome() {
@@ -338,11 +338,13 @@
         node("span", "count", String(items.length)),
       );
       const cards = node("div", "cards");
-      // "완료" 칸은 드래그로는 완료 처리만 받는다(취소는 드롭다운 전용, allowed() 참고).
+      // 완료 칸의 카드도 buildClosedCard를 통해 다시 활성 칸으로 옮길 수 있다.
       section.dataset.target = column;
       for (const item of items)
         cards.append(
-          column === "completed" ? buildClosedCard(item) : buildActiveCard(item),
+          column === "completed"
+            ? buildClosedCard(item)
+            : buildActiveCard(item),
         );
       if (!items.length) cards.append(node("p", "empty", t().empty));
       section.append(header, cards);
@@ -351,9 +353,12 @@
     $("board-columns").replaceChildren(columns);
     $("board-columns").setAttribute("aria-busy", String(busy));
     $("sync-status").textContent = t().syncedStatus(
-      new Date(state.generatedAt).toLocaleString(lang === "th" ? "th-TH" : "ko-KR", {
-        hour12: false,
-      }),
+      new Date(state.generatedAt).toLocaleString(
+        lang === "th" ? "th-TH" : "ko-KR",
+        {
+          hour12: false,
+        },
+      ),
     );
     $("refresh").disabled = busy;
   }
@@ -412,7 +417,11 @@
       if (started === epoch) {
         notice(error.message || t().connectionCheck);
         $("sync-status").textContent = state
-          ? t().delayedStatus(new Date(state.generatedAt).toLocaleString(lang === "th" ? "th-TH" : "ko-KR"))
+          ? t().delayedStatus(
+              new Date(state.generatedAt).toLocaleString(
+                lang === "th" ? "th-TH" : "ko-KR",
+              ),
+            )
           : t().connectionFailed;
       }
     } finally {
@@ -448,7 +457,10 @@
     endDrag();
     if (
       ["completed", "cancelled"].includes(target) &&
-      !(await confirmFinish(t().columns[target], t().confirmMoveBody(item.title)))
+      !(await confirmFinish(
+        t().columns[target],
+        t().confirmMoveBody(item.title),
+      ))
     ) {
       busy = false;
       render();
@@ -457,6 +469,7 @@
     }
     const before = structuredClone(state);
     state.items = state.items.filter((card) => card.id !== item.id);
+    state.completed = state.completed.filter((card) => card.id !== item.id);
     const moved = { ...item, status: target, moves: {} };
     if (["completed", "cancelled"].includes(target))
       state.completed = [moved, ...state.completed].slice(0, 12);
@@ -477,7 +490,8 @@
         signal: AbortSignal.timeout(15000),
       });
       const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.message || t().saveFailed);
+      if (!response.ok || !result.ok)
+        throw new Error(result.message || t().saveFailed);
       notice(t().movedTo(t().columns[target]));
     } catch (error) {
       state = before;
@@ -514,7 +528,8 @@
         signal: AbortSignal.timeout(15000),
       });
       const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.message || t().actionFailed);
+      if (!response.ok || !result.ok)
+        throw new Error(result.message || t().actionFailed);
       notice(kind === "reply" ? t().repliedDone : t().workDone);
     } catch (error) {
       notice(t().recheck(error.message));
@@ -576,7 +591,8 @@
         body: JSON.stringify({ title, assigneeSlackId }),
       });
       const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error(result.error || t().addFailed);
+      if (!response.ok || !result.ok)
+        throw new Error(result.error || t().addFailed);
       notice(
         assigneeSlackId && result.assignee_notified
           ? t().addAssigned(title, names[assigneeSlackId] || assigneeSlackId)

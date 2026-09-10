@@ -21,8 +21,11 @@
         </div>
         <div class="header-controls">
           <div class="lang-toggle" role="group" aria-label="Language / ภาษา">
-            <button id="lang-ko" type="button" aria-pressed="true">한국어</button
-            ><button id="lang-th" type="button" aria-pressed="false">ไทย</button>
+            <button id="lang-ko" type="button" aria-pressed="true">
+              한국어</button
+            ><button id="lang-th" type="button" aria-pressed="false">
+              ไทย
+            </button>
           </div>
           <button id="add-task" type="button">+ 새 업무</button>
           <div class="sync">
@@ -55,13 +58,20 @@
       <form method="dialog" id="add-form">
         <h2 id="add-title">새 업무 등록</h2>
         <label id="add-title-label" for="add-task-title">업무 제목</label>
-        <input id="add-task-title" name="title" type="text" required maxlength="200" />
+        <input
+          id="add-task-title"
+          name="title"
+          type="text"
+          required
+          maxlength="200"
+        />
         <label id="add-assignee-label" for="add-task-assignee">담당자</label>
         <select id="add-task-assignee" name="assignee">
           <option value="">본인</option>
         </select>
         <div class="dialog-actions">
-          <button value="cancel" id="add-cancel" type="submit" formnovalidate>돌아가기</button
+          <button value="cancel" id="add-cancel" type="submit" formnovalidate>
+            돌아가기</button
           ><button value="confirm" id="add-confirm" type="submit">등록</button>
         </div>
       </form>
