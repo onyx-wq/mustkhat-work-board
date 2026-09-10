@@ -146,7 +146,7 @@
   // 보고서와 같은 핵심 칸을 보여준다. A2 원본 대기는 별도 칸을 만들지 않고
   // 진행 중 흐름에서 A2 버튼으로 처리한다. 완료·취소된 카드도 다시 활성 칸으로
   // 되돌릴 수 있게 한다.
-  const COLUMN_ORDER = ["in_progress", "open", "blocked", "completed"];
+  const COLUMN_ORDER = ["open", "in_progress", "blocked", "completed"];
   const inColumn = (item, column) =>
     column === "in_progress"
       ? item.status === "in_progress" || item.status === "waiting"
@@ -181,7 +181,7 @@
     epoch = 0;
   const managed = (item) => item.externalId?.startsWith("wait:");
   const allowed = (item, target) =>
-    !managed(item) &&
+    (!managed(item) || ["completed", "cancelled"].includes(item.status)) &&
     transitions[item.status]?.includes(target) &&
     !!item.moves?.[target] &&
     // 취소는 실수 방지를 위해 드롭 대신 상태 선택 메뉴에서만 고르게 한다.
@@ -222,7 +222,7 @@
       meta.append(due);
     }
     card.append(meta);
-    if (managed(item)) {
+    if (managed(item) && !["completed", "cancelled"].includes(item.status)) {
       const actions = node("div", "actions");
       if (item.a2Actions?.reply) {
         const btn = node("button", "a2-reply", t().a2Reply);
@@ -251,7 +251,8 @@
       select.append(new Option(t().moveLabel, ""));
       for (const target of transitions[item.status] || [])
         if (
-          !managed(item) &&
+          (!managed(item) ||
+            ["completed", "cancelled"].includes(item.status)) &&
           transitions[item.status]?.includes(target) &&
           item.moves?.[target]
         )
