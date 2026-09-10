@@ -1,157 +1,58 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>팀 업무 보드</title>
-<style>
-  body { font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif; background: #f7f7f8; margin: 0; padding: 24px; color: #171717; }
-  .status { max-width: 480px; margin: 48px auto; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 28px 32px; text-align: center; }
-  .status h1 { font-size: 17px; margin: 0 0 8px; }
-  .status p { font-size: 14px; color: #737373; margin: 0; line-height: 1.6; }
-  /* 백엔드 보드 화면용 스타일 (백엔드 <style>은 제거하고 뷰어가 대신 제공한다) */
-  h1.board-title { font-size: 20px; margin: 0 0 4px; }
-  .meta-line { color: #737373; font-size: 13px; margin: 0 0 20px; }
-  .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-  .column h2 { font-size: 14px; margin: 0 0 10px; color: #404040; }
-  .column .count { color: #a3a3a3; font-weight: normal; }
-  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
-  .card .title { font-size: 13.5px; font-weight: 600; margin: 0 0 6px; line-height: 1.4; }
-  .card .meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 11.5px; color: #737373; margin-bottom: 8px; }
-  .card .due { background: #fef3c7; color: #92400e; border-radius: 4px; padding: 1px 6px; }
-  .card .actions { display: flex; gap: 12px; }
-  .card .actions button { background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; text-decoration: none; color: #059669; }
-  .card .actions .cancel { color: #a3a3a3; margin-left: auto; }
-  .card .actions form { margin: 0; }
-  .card .actions .cancel button { color: inherit; }
-  .card .managed { font-size: 11.5px; color: #9333ea; margin: 0; }
-  .empty { font-size: 12px; color: #d4d4d4; border: 1px dashed #e5e5e5; border-radius: 8px; padding: 16px; text-align: center; }
-  .closed { margin-top: 28px; background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 4px 16px; }
-  .closed h2 { font-size: 14px; color: #404040; }
-  .closed ul { list-style: none; margin: 0; padding: 0; }
-  .closed li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid #f0f0f0; font-size: 13px; }
-  .closed li:first-child { border-top: none; }
-  .closed .owner { color: #a3a3a3; font-size: 11.5px; }
-  .closed .badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
-  .closed .badge.completed { background: #dcfce7; color: #15803d; }
-  .closed .badge.cancelled { background: #f5f5f5; color: #737373; }
-</style>
-</head>
-<body>
-<div class="status" id="status">
-  <h1>보드를 불러오는 중…</h1>
-  <p>잠시만 기다려 주세요.</p>
-</div>
-<script>
-// 팀 업무 보드 뷰어 (정적).
-// Supabase 기본 도메인이 HTML을 text/plain으로 강제하는 공식 제한 때문에
-// 이 페이지가 대신 화면을 제공한다. 데이터·권한은 기존 서명(v/sig) 검증을 그대로 쓴다.
-// 뷰어 JS는 문서에 남아 있고, 보드 HTML은 #board-root 안에만 삽입한다.
-(function () {
-  'use strict';
-  var BACKEND = 'https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/team-reporting/board';
-
-  // #status 로딩 카드를 보드 컨테이너로 교체한다 (이후 교체는 이 안에서만).
-  var root = document.createElement('div');
-  root.id = 'board-root';
-  document.getElementById('status').replaceWith(root);
-
-  function showStatus(title, message) {
-    root.innerHTML = '<div class="status"><h1></h1><p></p></div>';
-    root.querySelector('h1').textContent = title;
-    root.querySelector('p').textContent = message;
-  }
-
-  // 백엔드 보드 HTML의 <body> 내용만 발라 root에 넣는다 (스타일은 뷰어가 이미 갖고 있음).
-  // 폼 action의 백엔드 절대 URL은 그대로 둔다 — wireActions가 preventDefault 후
-  // 같은 URL로 fetch POST를 보내므로, 이동 자체는 일어나지 않는다.
-  function render(html) {
-    var bodyStart = html.indexOf('<body>');
-    var bodyEnd = html.indexOf('</body>');
-    var inner = html;
-    if (bodyStart >= 0 && bodyEnd > bodyStart) inner = html.slice(bodyStart + 6, bodyEnd);
-    root.innerHTML = inner;
-    wireActions(root);
-  }
-
-  function wireActions(scope) {
-    var forms = scope.querySelectorAll('form[method="post"]');
-    Array.prototype.forEach.call(forms, function (form) {
-      var action = form.getAttribute('action') || '';
-      if (action.indexOf(BACKEND + '/action?') !== 0) return; // 백엔드 액션 URL만 처리
-      form.addEventListener('submit', function (event) {
-        event.preventDefault();
-        fetch(action, { method: 'POST', headers: { 'Accept': 'text/html' } })
-          .then(function (res) {
-            if (!res.ok) throw new Error('status ' + res.status);
-            return res.text();
-          })
-          .then(function (resultHtml) { renderResult(resultHtml); })
-          .catch(function () {
-            showStatus('요청이 실패했어요', '잠시 후 다시 시도해 주세요.');
-          });
-      });
-    });
-  }
-
-  // 액션 결과 화면(제목·본문·돌아가기)을 root에 표시한다.
-  function renderResult(html) {
-    var doc = new DOMParser().parseFromString(html, 'text/html');
-    var h1 = doc.querySelector('h1');
-    var p = doc.querySelector('p');
-    var card = document.createElement('div');
-    card.className = 'status';
-    card.innerHTML = '<h1></h1><p></p>';
-    card.querySelector('h1').textContent = h1 ? h1.textContent : '처리 결과를 확인하지 못했어요';
-    card.querySelector('p').textContent = p ? p.textContent : '';
-    var a = document.createElement('a');
-    a.href = '#';
-    a.style.cssText = 'display:inline-block;margin-top:14px;font-size:14px;font-weight:600;color:#059669;text-decoration:none;cursor:pointer';
-    a.textContent = '← 업무 보드로 돌아가기';
-    a.addEventListener('click', function (event) {
-      event.preventDefault();
-      loadBoard();
-    });
-    var spacer = document.createElement('p');
-    spacer.appendChild(a);
-    card.appendChild(spacer);
-    root.innerHTML = '';
-    root.appendChild(card);
-  }
-
-  function loadBoard() {
-    var params = new URLSearchParams(location.search);
-    var viewer = params.get('v');
-    var sig = params.get('sig');
-    if (!viewer || !sig) {
-      showStatus('링크가 올바르지 않아요', '슬랙의 업무 보드 링크를 다시 열어 주세요.');
-      return;
-    }
-    var upstream = BACKEND + '?v=' + encodeURIComponent(viewer) + '&sig=' + encodeURIComponent(sig);
-    fetch(upstream, { headers: { 'Accept': 'text/html' } })
-      .then(function (res) {
-        if (res.status === 403 || res.status === 401) throw new Error('권한 없음');
-        if (!res.ok) throw new Error('status ' + res.status);
-        return res.text();
-      })
-      .then(function (html) {
-        if (html.indexOf('<!DOCTYPE html>') !== 0) throw new Error('응답 형식 오류');
-        render(html);
-      })
-      .catch(function (err) {
-        if (String(err.message) === '권한 없음') {
-          showStatus('권한이 없어요', '이 링크는 지정된 관리자만 사용할 수 있습니다.');
-        } else if (String(err.message) === '응답 형식 오류') {
-          showStatus('보드를 확인하지 못했어요', '링크가 만료되었을 수 있어요. 슬랙에서 보드 링크를 다시 받아 주세요.');
-        } else {
-          showStatus('보드를 불러오지 못했어요', '잠시 후 다시 시도해 주세요.');
-        }
-      });
-  }
-
-  loadBoard();
-})();
-</script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>팀 업무 보드</title>
+    <link rel="stylesheet" href="./board.css" />
+    <script src="./board.js" defer></script>
+  </head>
+  <body>
+    <main id="work-board">
+      <header id="board-header">
+        <div>
+          <p class="eyebrow">MUSTKHAT · TEAM</p>
+          <h1>팀 업무 보드</h1>
+          <p class="description">업무를 옮기며 팀의 흐름을 확인하세요.</p>
+        </div>
+        <div class="sync">
+          <span id="sync-status" role="status">보드를 불러오는 중…</span
+          ><button id="refresh" type="button">새로고침</button>
+        </div>
+      </header>
+      <p id="notice" role="alert" hidden></p>
+      <section
+        id="board-columns"
+        aria-label="진행 중인 업무"
+        aria-busy="true"
+      ></section>
+      <section id="board-finish" aria-label="업무 종료">
+        <div class="finish-zone" data-target="completed">
+          <strong>완료</strong><span>카드를 놓고 확인하면 완료됩니다</span>
+        </div>
+        <div class="finish-zone" data-target="cancelled">
+          <strong>취소</strong><span>카드를 놓고 확인하면 취소됩니다</span>
+        </div>
+      </section>
+      <section id="board-closed" aria-labelledby="closed-title">
+        <h2 id="closed-title">최근 종료 <span id="closed-count"></span></h2>
+        <div id="closed-list"></div>
+      </section>
+      <p class="footnote">
+        9초마다 갱신 · A2 업무는 /wait에서 처리 · 카드 순서는 최근 변경순
+      </p>
+    </main>
+    <dialog id="finish-dialog" aria-labelledby="finish-title">
+      <form method="dialog">
+        <h2 id="finish-title"></h2>
+        <p id="finish-description"></p>
+        <div class="dialog-actions">
+          <button value="cancel">돌아가기</button
+          ><button value="confirm" id="finish-confirm">확인</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
 </html>
