@@ -649,6 +649,19 @@
         border-radius: 10px;
         overflow: hidden;
       }
+      #d7-api { margin-top: 20px; padding: 24px; scroll-margin-top: 20px; }
+      #d7-api h3 { font-size: 22px; margin-bottom: 10px; }
+      #d7-api h4 { font-size: 17px; margin: 26px 0 12px; }
+      #d7-api p { font-size: 14px; line-height: 1.7; color: var(--muted); }
+      #d7-api .api-callout { padding: 14px 18px; margin: 16px 0; background: var(--wait-bg); border-radius: 8px; }
+      #d7-api .api-callout p { color: var(--ink); }
+      #d7-api table { border: 1px solid var(--border); }
+      #d7-api th:first-child { width: 19%; }
+      #d7-api td:last-child { width: 27%; }
+      #d7-api details { margin-top: 14px; font-size: 14px; line-height: 1.7; }
+      #d7-api summary { cursor: pointer; color: var(--accent); }
+      #d7-api ol { padding-left: 22px; line-height: 1.9; font-size: 15px; }
+      #d7-api a { color: var(--accent); }
     </style>
   </head>
   <body>
@@ -672,7 +685,7 @@
       <div class="track">
         <h2>A0 · 슬랙 봇 기반 복구</h2>
         <div class="sub">
-          D1~D8 전부 완료 · <b style="color: var(--done)">review(검토 대기) 단계로 이동 완료</b> ·
+          기반 복구·D7 방식 결정 완료 · API 신청 준비는 아래 별도 안내 · <b style="color: var(--done)">review(검토 대기) 단계로 이동 완료</b> ·
           클로드 대기 두뇌 연결(9/9) + 승격 시도→원 구조 유지 확정(9/10)
         </div>
       </div>
@@ -755,45 +768,12 @@
           </tr>
           <tr>
             <td class="name">D7 쇼피·틱톡 자료 수집</td>
-            <td class="st"><span class="badge b-done">완료(결정 0007)</span></td>
+            <td class="st"><span class="badge b-wait">API 신청 준비</span></td>
             <td class="what">
-              <span class="pin">📌 체크: 자료 수집 방식 최종 택1 — 2026-09-07 14:00 미팅 확정</span
-              ><br />
-              택1이 아니라 <b>병행</b>으로 결정(결정 0007): <b>(a) 정식 API 신규 개발 진행</b> —
-              Shopee Open Platform(Partner/Open API)·TikTok Shop API 신청, 권한 심사, 자격증명 보관,
-              어댑터 개발을 별도 작업으로 진행. <b>(b) 수동 자료 병행 운영</b> — 승인 전까지 팀이
-              <b>머스트유 구글드라이브에 자료를 올리는 방식</b>으로 관리. 수동 자료는 "자동 수집
-              아님"으로 표시.
-              <span class="pin" style="margin-top: 6px">📌 체크: 신청에 필요한 것</span>
-              <b>① 셀러센터 로그인</b> — 쇼피는 `mustu@must.company`(2FA 폰 승인), 틱톡은 틱톡 셀러
-              계정(별도 확인 필요). <b>② 회사 서류</b> —
-              <b>DBD(태국 상무부) 공공조회로 확정 완료(9/11)</b> — 법인명
-              <b>บริษัท มัส ยู จำกัด (MUST U Co., Ltd.)</b>, 등록번호 <b>0105567246608</b>, 본점
-              주소
-              <b
-                >159/35 Sermmit Tower, 룸 2102/2, 21층, Sukhumvit 21 (Asok), Khlong Toei Nuea,
-                Watthana, Bangkok</b
-              >(2024.12.6 등록, 자본금 400만 바트, 영업 중). 쇼피 신청서의 "회사명은 셀러센터
-              등록명과 일치" 조건 충족. <b>③ 담당자 연락처</b> — `mustu@must.company` 소유자
-              이름·이메일 + 개발 담당(MUST KHAT 팀) 연락처. <b>④ 점포 링크</b> — 쇼피 점포
-              URL(seller.shopee.co.th). <b>⑤ API 이용 목적</b> — "판매 데이터(주문·매출) 수집 + 상품
-              등록·재고 관리 자동화"(확정됨). 요청할 권한: 상품·재고 조회·수정, 주문·매출 조회, 점포
-              정보 조회. 승인되면 내려오는 자격증명 (partner_id·partner_key)은 Supabase Vault에
-              보관.
-              <span class="pin" style="margin-top: 6px"
-                >📌 체크: 신청하면 얼마나 걸리나 (공식 문서 기준, 9/11 조사)</span
-              >
-              <b>Shopee</b>: 셀러(자사 점포용) 계정 신청은 <b>3 영업일</b> 심사, 제3자 파트너(ISV)
-              신청은 <b>10 영업일</b> — 우리는 자사 점포 데이터만 쓰므로 셀러 트랙(3영업일) 해당.
-              거절되면 이메일로 사유가 오고 수정 후 재제출 가능. <b>TikTok Shop</b>: 계정
-              만들기·개발자 등록은 빠르지만 그다음 <b>컴플라이언스·법률 심사가 3주 이상</b>(공식
-              문서 "3+ weeks" 명시) — 등록 직후 바로 심사를 시작해야 개발과 병행됨. 승인 상태는 My
-              Account > My category & market에서 확인.
-              <span class="pin" style="margin-top: 6px">📌 체크: 가장 오래 걸리는 단계</span>
-              신청서 작성이나 우리 쪽 어댑터 개발보다
-              <b>Shopee/TikTok 개발자센터에 앱을 등록한 뒤 플랫폼이 직접 하는 심사(승인)</b>가 제일
-              오래 걸림 — 우리가 속도를 통제할 수 없는 구간이라 신청부터 최대한 빨리 넣어두는 게
-              유리함.
+              <b>수집 방식 결정 완료(0007) · API 신청·승인은 별도 진행.</b><br />
+              정식 API 개발과 구글드라이브 수동 자료 업로드를 병행합니다.
+              승인 전 수동 자료는 “자동 수집 아님”으로 표시합니다.<br />
+              <a href="#d7-api">필요 서류·정보 / 심사 기간 / 지금 할 일 보기 ↓</a>
             </td>
           </tr>
           <tr>
@@ -835,6 +815,50 @@
             </td>
           </tr>
         </table>
+      </div>
+      <div id="d7-api" class="card">
+        <h3>A0 · D7 — 쇼피·틱톡 API 신청 안내</h3>
+        <p>2026-09-11 정리 · 자사 점포용 API 기준 · 신청 준비와 플랫폼 심사 기간을 구분했습니다.</p>
+        <div class="api-callout"><p><b>현재: 수집 방식 결정 완료 → API 신청 준비 중</b><br />
+          먼저 쇼피 로그인·휴대폰 인증과 틱톡 셀러 계정을 확인합니다. 회사 정보 조회는 완료됐지만 제출용 서류 파일 확보 여부는 확인이 필요합니다.</p></div>
+        <h4>1. 필요한 서류·정보</h4>
+        <table aria-label="API 신청 준비 체크리스트">
+          <thead><tr><th scope="col">준비 항목</th><th scope="col">준비할 내용</th><th scope="col">현재 상태 / 다음 조치</th></tr></thead>
+          <tbody>
+            <tr><td><b>회사 등록 서류</b></td><td>태국 DBD 법인등록 서류. 실제 첨부 종류·발급일 조건은 신청 화면에서 확인.</td><td><b>정보 조회 완료</b><br />제출용 파일 확보 여부 확인</td></tr>
+            <tr><td><b>회사명·번호·주소</b></td><td>MUST U Co., Ltd.<br />등록번호 <code>0105567246608</code><br />Sermmit Tower 본점 주소</td><td><b>보드에 확인 완료로 기록</b><br />셀러센터 등록 정보와 대조</td></tr>
+            <tr><td><b>쇼피 로그인</b></td><td><code>mustu@must.company</code><br />셀러센터 계정 + 휴대폰 2차 인증</td><td><b>로그인 협조 필요</b></td></tr>
+            <tr><td><b>틱톡 로그인</b></td><td>운영 중인 TikTok Shop 셀러 계정</td><td><b>계정 확인 필요</b></td></tr>
+            <tr><td><b>담당자 연락처</b></td><td>계정 소유자 이름·이메일<br />개발 담당(MUST KHAT 팀) 연락처</td><td>신청서 기입 정보 확인</td></tr>
+            <tr><td><b>점포 링크·정보</b></td><td>실제 점포 URL·점포 식별정보<br />셀러센터 공통 주소와 구분</td><td>각 점포 정보 확보 여부 확인</td></tr>
+            <tr><td><b>API 사용 목적</b></td><td>주문·매출 수집 + 상품 등록·재고 관리 자동화</td><td><b>목적 확정</b><br />권한 범위는 신청 시 확인</td></tr>
+          </tbody>
+        </table>
+        <details><summary>회사 상세 정보와 개발팀 준비 사항</summary>
+          <p>법인명: บริษัท มัส ยู จำกัด (MUST U Co., Ltd.)<br />
+          주소: 159/35 Sermmit Tower, 룸 2102/2, 21층, Sukhumvit 21 (Asok), Khlong Toei Nuea, Watthana, Bangkok.<br />
+          기존 보드 기록: 2024.12.6 등록, 자본금 400만 바트, 영업 중 / 9월 11일 DBD 공공조회 확인.<br />
+          요청 예정 권한: 상품·재고 조회·수정, 주문·매출 조회, 점포 정보 조회.<br />
+          승인 후 발급되는 자격증명(partner_id·partner_key 등)은 Supabase Vault에 보관합니다.</p>
+        </details>
+        <h4>2. 신청하면 얼마나 걸리나</h4>
+        <table aria-label="플랫폼별 API 심사 기간">
+          <thead><tr><th scope="col">플랫폼 / 단계</th><th scope="col">계획에 사용할 기간</th><th scope="col">적용 조건</th></tr></thead>
+          <tbody>
+            <tr><td><b>Shopee</b><br />자사 점포용 계정 심사</td><td><b>3영업일 — 잠정</b><br />기존 9/11 보드 조사 기록. 이번 수정에서는 공식 원문 재검증 전.</td><td>자사 점포용 셀러 트랙 기준 기록.<br />신청 시 공식 안내 재확인</td></tr>
+            <tr><td><b>TikTok Shop</b><br />컴플라이언스·법률 심사</td><td><b>해당 심사 대상이면 3주 이상</b><br />태국 자사 점포에 적용되는지는 별도 확인.</td><td>미국·영국은 필수, 일부 다른 파트너는 개별 판단.<br />태국 계정의 심사 유형 확인</td></tr>
+            <tr><td><b>승인 후 연동</b></td><td><b>별도 산정</b><br />어댑터 개발·권한 연결·실데이터 검증</td><td>위 심사 기간은 실제 연동 완료까지의 총기간이 아님</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top: 12px">보완 요청·재제출이 있으면 일정이 늘어날 수 있습니다. Shopee 제3자 파트너(ISV) 10영업일은 기존 보드의 비교용 기록이며 자사 점포용 일정과 구분합니다.<br />
+          근거: <a href="https://partner.tiktokshop.com/docv2/page/developer-onboarding" target="_blank" rel="noopener noreferrer">TikTok Shop 공식 개발자 등록 안내</a> · 승인 상태: My Account → My category &amp; market</p>
+        <h4>3. 지금 할 일</h4>
+        <ol>
+          <li><b>계정 확인:</b> 쇼피 로그인·휴대폰 인증 / 틱톡 셀러 계정 확인</li>
+          <li><b>자료 확보:</b> DBD 제출용 파일·담당자 연락처·각 점포 링크 확인</li>
+          <li><b>신청 접수:</b> 자사 점포용 개발자 유형 선택 → 필수 서류·권한 확인 → 심사 접수</li>
+          <li><b>병행 운영:</b> 심사 중 연동 개발 진행, 승인 전까지 드라이브 수동 자료 유지</li>
+        </ol>
       </div>
       <div class="ex-card" style="margin-top: 16px">
         <div class="ex-title"><span class="tag">A0</span>에러 화면 안전 차단 — 실제 사용 예시</div>
@@ -1761,13 +1785,10 @@
         <li>
           <span class="chk"></span>
           <span class="chk-label">
-            <span class="tag">[SHOP-OPENAPI]</span>쇼피·틱톡 정식 API 신청 — 로그인 협조 1회
-            <span class="sub"
-              >09-10 대표님 착수 지시로 결정 0007(a) 트랙 활성 재개. 남은 건 셀러센터 계정으로
-              Shopee Open Platform에 로그인하는 것 1회뿐(2FA 폰 승인 필요 — 사람만 할 수 있음).
-              로그인되면 신청서 초안은 준비돼 있음. 심사(승인)가 가장 오래 걸리는 구간이라 빨리
-              넣을수록 유리.</span
-            >
+            <span class="tag">[SHOP-OPENAPI]</span>쇼피·틱톡 API 신청 — 계정·제출 자료 확인
+            <span class="sub">09-10 착수 지시로 신청 준비 재개. 쇼피 로그인·휴대폰 인증,
+              틱톡 셀러 계정, DBD 제출용 파일·담당자·점포 정보를 확인한 뒤 접수합니다.
+              <a href="#d7-api">필요 서류와 심사 기간 보기 ↑</a></span>
           </span>
         </li>
         <li>
