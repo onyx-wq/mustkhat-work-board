@@ -167,6 +167,14 @@
     U0APY9W912P: "박찬우",
     U089T883KMF: "포키",
   };
+  // 사람 이름은 뜻을 옮기는 게 아니라 정해진 표기를 쓰는 것이라 AI 번역에 맡기지 않고
+  // 여기 고정한다(2026-09-15). 모르는 사람은 한국어 표기를 그대로 보여준다.
+  const namesTh = {
+    U07G9TQTJDC: "ยองชาน",
+    U06V2FAGQCD: "ฮวาน",
+    U0APY9W912P: "ชานอู",
+    U089T883KMF: "นริศรา",
+  };
   const $ = (id) => document.getElementById(id);
   const params = new URLSearchParams(location.search);
   const url = new URL(API);
@@ -199,14 +207,21 @@
   }
   function owner(item) {
     const raw = item.ownerName || t().unowned;
-    return names[raw.replace(/^<@|>$/g, "")] || raw;
+    const id = raw.replace(/^<@|>$/g, "");
+    if (lang === "th") return namesTh[id] || names[id] || raw;
+    return names[id] || raw;
+  }
+  // 태국어 화면에서는 번역된 제목을 쓴다. 아직 번역이 안 됐거나 실패했으면 한국어
+  // 원문을 그대로 보여준다 — 번역이 멈춰도 보드는 계속 읽을 수 있어야 한다.
+  function cardTitle(item) {
+    return lang === "th" && item.titleTh ? item.titleTh : item.title;
   }
   function buildActiveCard(item, { showA2Tag = true } = {}) {
     const card = node("article", "card");
     card.dataset.id = item.id;
     card.draggable =
       !busy && Object.keys(item.moves || {}).length > 0;
-    card.append(node("h3", "", item.title));
+    card.append(node("h3", "", cardTitle(item)));
     const meta = node("div", "card-meta");
     if (showA2Tag && managed(item)) meta.append(node("span", "a2-tag", "A2"));
     const name = owner(item);
@@ -249,7 +264,7 @@
       else card.append(node("p", "managed", t().a2Managed));
     } else {
       const select = node("select");
-      select.setAttribute("aria-label", t().moveAria(item.title));
+      select.setAttribute("aria-label", t().moveAria(cardTitle(item)));
       select.disabled = busy;
       select.append(new Option(t().moveLabel, ""));
       for (const target of transitions[item.status] || [])
@@ -467,7 +482,7 @@
       ["completed", "cancelled"].includes(target) &&
       !(await confirmFinish(
         t().columns[target],
-        t().confirmMoveBody(item.title),
+        t().confirmMoveBody(cardTitle(item)),
       ))
     ) {
       busy = false;
@@ -517,7 +532,7 @@
     if (busy) return;
     if (
       kind === "done" &&
-      !(await confirmFinish(t().a2Done, t().confirmA2Body(item.title)))
+      !(await confirmFinish(t().a2Done, t().confirmA2Body(cardTitle(item))))
     )
       return;
     busy = true;
