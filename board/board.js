@@ -30,6 +30,7 @@
       empty: "등록된 업무가 없습니다",
       unowned: "담당 미상",
       due: (date) => `마감 ${date}`,
+      descriptionReadOnly: "팀의 업무 흐름을 확인하세요. (보기 전용)",
       needLink: "슬랙에서 받은 업무 보드 링크를 열어 주세요.",
       needLinkStatus: "서명 링크 필요",
       forbidden: "링크 권한을 확인해 주세요.",
@@ -95,6 +96,7 @@
       empty: "ยังไม่มีงานที่บันทึกไว้",
       unowned: "ไม่ระบุผู้รับผิดชอบ",
       due: (date) => `ครบกำหนด ${date}`,
+      descriptionReadOnly: "ดูความคืบหน้างานของทีม (โหมดดูอย่างเดียว)",
       needLink: "กรุณาเปิดลิงก์บอร์ดงานที่ได้รับจาก Slack",
       needLinkStatus: "ต้องใช้ลิงก์ที่มีลายเซ็น",
       forbidden: "กรุณาตรวจสอบสิทธิ์ของลิงก์",
@@ -294,8 +296,15 @@
   }
   function renderChrome() {
     document.documentElement.lang = lang;
+    // 2026-09-15: 열람은 팀 전원, 변경은 관리자만. 서버가 편집 권한이 없다고 알려주면
+    // (canEdit=false · createUrl 없음) 눌러도 거절될 '새 업무' 버튼을 아예 숨긴다.
+    // 카드의 이동 버튼·드래그는 서버가 moves를 비워 보내므로 저절로 사라진다.
+    const readOnly = !!state && state.canEdit === false;
     $("board-title").textContent = t().title;
-    $("board-description").textContent = t().description;
+    $("board-description").textContent = readOnly
+      ? t().descriptionReadOnly
+      : t().description;
+    $("add-task").hidden = readOnly;
     $("refresh").textContent = t().refresh;
     $("footnote").textContent = t().footnote;
     $("lang-ko").setAttribute("aria-pressed", String(lang === "ko"));
