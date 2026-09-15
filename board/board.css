@@ -264,6 +264,11 @@ h2 {
   color: var(--status-blocked);
   border-color: currentColor;
 }
+/* 마감일이 정해지지 않은 업무 — 자리는 지키되 기한이 있는 업무보다 약하게 보인다. */
+.due.unset {
+  color: var(--status-neutral);
+  border-style: dashed;
+}
 .managed {
   color: var(--muted);
   font-size: 12px;

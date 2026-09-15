@@ -30,6 +30,7 @@
       empty: "등록된 업무가 없습니다",
       unowned: "담당 미상",
       due: (date) => `마감 ${date}`,
+      dueUnset: "마감 미정",
       descriptionReadOnly: "팀의 업무 흐름을 확인하세요. (보기 전용)",
       needLink: "슬랙에서 받은 업무 보드 링크를 열어 주세요.",
       needLinkStatus: "서명 링크 필요",
@@ -96,6 +97,7 @@
       empty: "ยังไม่มีงานที่บันทึกไว้",
       unowned: "ไม่ระบุผู้รับผิดชอบ",
       due: (date) => `ครบกำหนด ${date}`,
+      dueUnset: "ไม่ระบุกำหนด",
       descriptionReadOnly: "ดูความคืบหน้างานของทีม (โหมดดูอย่างเดียว)",
       needLink: "กรุณาเปิดลิงก์บอร์ดงานที่ได้รับจาก Slack",
       needLinkStatus: "ต้องใช้ลิงก์ที่มีลายเซ็น",
@@ -212,11 +214,15 @@
       node("span", "avatar", name.slice(0, 1)),
       node("span", "", name),
     );
+    // 2026-09-15 대표님 지시: 시작 전·진행 중·막힘·완료 칸에서도 마감을 취소 칸처럼
+    // 항상 보이게 한다. 마감일이 없는 업무는 빈칸으로 두지 않고 '마감 미정'으로 적는다.
     if (item.dueDate) {
       const today = new Date().toLocaleDateString("sv-SE");
       const due = node("span", "due", t().due(item.dueDate));
       if (item.dueDate <= today) due.classList.add("urgent");
       meta.append(due);
+    } else {
+      meta.append(node("span", "due unset", t().dueUnset));
     }
     card.append(meta);
     if (managed(item) && !["completed", "cancelled"].includes(item.status)) {
