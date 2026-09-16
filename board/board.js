@@ -78,6 +78,8 @@
       addDuePlaceholder: "연도. 월. 일.",
       addTitlePlaceholder: "예: 상세페이지 초안 작업",
       addAssigneeLabel: "담당자",
+      addAssigneePlaceholder: "담당자를 고르세요",
+      addAssigneeRequired: "담당자를 골라 주세요.",
       addConfirm: "등록",
       addTitleRequired: "업무 제목을 입력해 주세요.",
       addCreating: "등록 중…",
@@ -156,6 +158,8 @@
       addDuePlaceholder: "ปี/เดือน/วัน",
       addTitlePlaceholder: "เช่น ร่างหน้ารายละเอียดสินค้า",
       addAssigneeLabel: "ผู้รับผิดชอบ",
+      addAssigneePlaceholder: "เลือกผู้รับผิดชอบ",
+      addAssigneeRequired: "กรุณาเลือกผู้รับผิดชอบ",
       addConfirm: "บันทึก",
       addTitleRequired: "กรุณากรอกชื่องาน",
       addCreating: "กำลังบันทึก…",
@@ -432,6 +436,7 @@
     // 2026-09-16 대표님 지적: 담당자 목록만 한국어로 남아 있었다. 카드의 담당자
     // 표기와 같은 표를 쓴다(namesTh → names 순 폴백).
     assignee.replaceChildren(
+      new Option(t().addAssigneePlaceholder, ""),
       ...Object.keys(names).map(
         (id) =>
           new Option(
@@ -718,6 +723,12 @@
     const title = $("add-task-title").value.trim();
     if (!title) {
       notice(t().addTitleRequired);
+      return;
+    }
+    // 2026-09-16 대표님 지시: 담당자를 비워 두면 링크 주인(보통 대표님) 앞으로
+    // 배정돼 버렸다. 반드시 고르게 한다.
+    if (!$("add-task-assignee").value) {
+      notice(t().addAssigneeRequired);
       return;
     }
     const description = $("add-task-description").value.trim() || null;
