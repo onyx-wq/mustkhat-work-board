@@ -228,6 +228,42 @@ h2 {
   line-height: 1.5;
   overflow-wrap: anywhere;
   font-weight: 600;
+  /* 제목·설명으로 나눌 수 없는 긴 제목도 카드를 삼키지 않게 세 줄에서 자른다. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.card.expanded h3 {
+  -webkit-line-clamp: unset;
+}
+/* 제목 뒤에 딸린 설명 — 기본은 두 줄, '더 보기'로 펼친다. */
+.card-desc {
+  margin-top: calc(var(--space-2) * -1);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.card.expanded .card-desc {
+  -webkit-line-clamp: unset;
+}
+.card-more {
+  align-self: flex-start;
+  margin-top: calc(var(--space-2) * -1);
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--status-progress);
+}
+.card-more:hover {
+  text-decoration: underline;
 }
 .card-meta {
   display: flex;

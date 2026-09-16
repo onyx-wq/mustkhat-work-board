@@ -30,6 +30,10 @@
       empty: "등록된 업무가 없습니다",
       unowned: "담당 미상",
       due: (date) => `마감 ${date}`,
+      more: "더 보기",
+      less: "접기",
+      moreAria: (title) => `${title} 상세 내용 펼치기`,
+      lessAria: (title) => `${title} 상세 내용 접기`,
       dueUnset: "마감 미정",
       descriptionReadOnly: "팀의 업무 흐름을 확인하세요. (보기 전용)",
       needLink: "슬랙에서 받은 업무 보드 링크를 열어 주세요.",
@@ -97,6 +101,10 @@
       empty: "ยังไม่มีงานที่บันทึกไว้",
       unowned: "ไม่ระบุผู้รับผิดชอบ",
       due: (date) => `ครบกำหนด ${date}`,
+      more: "ดูเพิ่มเติม",
+      less: "ย่อ",
+      moreAria: (title) => `ขยายรายละเอียดของ ${title}`,
+      lessAria: (title) => `ย่อรายละเอียดของ ${title}`,
       dueUnset: "ไม่ระบุกำหนด",
       descriptionReadOnly: "ดูความคืบหน้างานของทีม (โหมดดูอย่างเดียว)",
       needLink: "กรุณาเปิดลิงก์บอร์ดงานที่ได้รับจาก Slack",
@@ -216,12 +224,54 @@
   function cardTitle(item) {
     return lang === "th" && item.titleTh ? item.titleTh : item.title;
   }
+  // 2026-09-16 대표님 지시: 지시문 전체가 제목으로 들어와 카드 하나가 아홉 줄을
+  // 차지하고 있었다. "짧은 제목 — 긴 설명" 형태면 앞을 제목, 뒤를 설명으로 나눠
+  // 설명만 두 줄로 접는다. 나눌 수 없는 제목은 그대로 두고 제목 쪽을 세 줄에서 자른다.
+  const TITLE_SPLIT = /\s[—–]\s/u;
+  const TITLE_HEAD_MAX = 40;
+  const expandedIds = new Set();
+  function splitTitle(item) {
+    const full = cardTitle(item) || "";
+    const match = TITLE_SPLIT.exec(full);
+    if (!match) return { head: full, body: "" };
+    const head = full.slice(0, match.index).trim();
+    const body = full.slice(match.index + match[0].length).trim();
+    // 앞부분이 제목이라기엔 길면 나누지 않는다 — 억지로 자르면 뜻이 끊긴다.
+    if (!head || !body || head.length > TITLE_HEAD_MAX)
+      return { head: full, body: "" };
+    return { head, body };
+  }
   function buildActiveCard(item, { showA2Tag = true } = {}) {
     const card = node("article", "card");
     card.dataset.id = item.id;
     card.draggable =
       !busy && Object.keys(item.moves || {}).length > 0;
-    card.append(node("h3", "", cardTitle(item)));
+    const { head, body } = splitTitle(item);
+    card.append(node("h3", "", head));
+    if (body) {
+      if (expandedIds.has(item.id)) card.classList.add("expanded");
+      const desc = node("p", "card-desc", body);
+      const toggle = node("button", "card-more");
+      toggle.type = "button";
+      // 실제로 잘린 카드에만 붙인다 — 잘렸는지는 DOM에 들어간 뒤 render()에서 잰다.
+      toggle.hidden = true;
+      const syncToggle = () => {
+        const open = card.classList.contains("expanded");
+        toggle.textContent = open ? t().less : t().more;
+        toggle.setAttribute("aria-expanded", String(open));
+        toggle.setAttribute(
+          "aria-label",
+          open ? t().lessAria(head) : t().moreAria(head),
+        );
+      };
+      syncToggle();
+      toggle.addEventListener("click", () => {
+        if (card.classList.toggle("expanded")) expandedIds.add(item.id);
+        else expandedIds.delete(item.id);
+        syncToggle();
+      });
+      card.append(desc, toggle);
+    }
     const meta = node("div", "card-meta");
     if (showA2Tag && managed(item)) meta.append(node("span", "a2-tag", "A2"));
     const name = owner(item);
@@ -264,7 +314,7 @@
       else card.append(node("p", "managed", t().a2Managed));
     } else {
       const select = node("select");
-      select.setAttribute("aria-label", t().moveAria(cardTitle(item)));
+      select.setAttribute("aria-label", t().moveAria(head));
       select.disabled = busy;
       select.append(new Option(t().moveLabel, ""));
       for (const target of transitions[item.status] || [])
@@ -374,6 +424,15 @@
       columns.append(section);
     }
     $("board-columns").replaceChildren(columns);
+    // 두 줄을 넘겨 실제로 잘린 설명에만 '더 보기'를 노출한다.
+    // 높이는 DOM에 붙은 뒤에만 잴 수 있어 여기서 처리한다.
+    for (const desc of $("board-columns").querySelectorAll(".card-desc")) {
+      const toggle = desc.nextElementSibling;
+      if (!toggle?.classList.contains("card-more")) continue;
+      toggle.hidden =
+        !desc.closest(".card").classList.contains("expanded") &&
+        desc.scrollHeight <= desc.clientHeight + 1;
+    }
     $("board-columns").setAttribute("aria-busy", String(busy));
     $("sync-status").textContent = t().syncedStatus(
       new Date(state.generatedAt).toLocaleString(
