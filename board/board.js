@@ -71,6 +71,10 @@
       addTask: "+ 새 업무",
       addDialogTitle: "새 업무 등록",
       addTitleLabel: "업무 제목",
+      addDescriptionLabel: "업무 내용",
+      addDescriptionPlaceholder: "무엇을, 어디까지 하면 되는지 적어 주세요. (선택)",
+      addDueLabel: "마감일",
+      addDueHint: "비워 두면 '마감 미정'으로 올라갑니다.",
       addTitlePlaceholder: "예: 상세페이지 초안 작업",
       addAssigneeLabel: "담당자",
       addConfirm: "등록",
@@ -144,6 +148,10 @@
       addTask: "+ งานใหม่",
       addDialogTitle: "เพิ่มงานใหม่",
       addTitleLabel: "ชื่องาน",
+      addDescriptionLabel: "รายละเอียดงาน",
+      addDescriptionPlaceholder: "ระบุว่าต้องทำอะไรและถึงขั้นไหน (ไม่บังคับ)",
+      addDueLabel: "กำหนดส่ง",
+      addDueHint: "เว้นว่างไว้จะขึ้นว่า \"ไม่ระบุกำหนด\"",
       addTitlePlaceholder: "เช่น ร่างหน้ารายละเอียดสินค้า",
       addAssigneeLabel: "ผู้รับผิดชอบ",
       addConfirm: "บันทึก",
@@ -230,13 +238,18 @@
   function cardTitle(item) {
     return lang === "th" && item.titleTh ? item.titleTh : item.title;
   }
-  // 2026-09-16 대표님 지시: 지시문 전체가 제목으로 들어와 카드 하나가 아홉 줄을
-  // 차지하고 있었다. "짧은 제목 — 긴 설명" 형태면 앞을 제목, 뒤를 설명으로 나눠
-  // 설명만 두 줄로 접는다. 나눌 수 없는 제목은 그대로 두고 제목 쪽을 세 줄에서 자른다.
+  function cardDescription(item) {
+    return (lang === "th" && item.descriptionTh) || item.description || "";
+  }
+  // 2026-09-16: 이제 '업무 내용'을 따로 받아 저장하므로 그게 있으면 그걸 쓴다.
+  // 그 전에 등록된 업무는 지시문 전체가 제목에 들어가 있어(카드 하나가 아홉 줄이었다)
+  // "짧은 제목 — 긴 설명" 형태면 갈라서 보여준다. 옛 데이터를 위한 폴백이다.
   const TITLE_SPLIT = /\s[—–]\s/u;
   const TITLE_HEAD_MAX = 40;
   function splitTitle(item) {
     const full = cardTitle(item) || "";
+    const saved = cardDescription(item);
+    if (saved) return { head: full, body: saved };
     const match = TITLE_SPLIT.exec(full);
     if (!match) return { head: full, body: "" };
     const head = full.slice(0, match.index).trim();
@@ -405,13 +418,25 @@
     $("add-title").textContent = t().addDialogTitle;
     $("add-title-label").textContent = t().addTitleLabel;
     $("add-task-title").placeholder = t().addTitlePlaceholder;
+    $("add-description-label").textContent = t().addDescriptionLabel;
+    $("add-task-description").placeholder = t().addDescriptionPlaceholder;
+    $("add-due-label").textContent = t().addDueLabel;
+    $("add-due-hint").textContent = t().addDueHint;
     $("add-assignee-label").textContent = t().addAssigneeLabel;
     $("add-cancel").textContent = t().dialogBack;
     $("add-confirm").textContent = t().addConfirm;
     const assignee = $("add-task-assignee");
     const kept = assignee.value;
+    // 2026-09-16 대표님 지적: 담당자 목록만 한국어로 남아 있었다. 카드의 담당자
+    // 표기와 같은 표를 쓴다(namesTh → names 순 폴백).
     assignee.replaceChildren(
-      ...Object.entries(names).map(([id, name]) => new Option(name, id)),
+      ...Object.keys(names).map(
+        (id) =>
+          new Option(
+            (lang === "th" && namesTh[id]) || names[id] || id,
+            id,
+          ),
+      ),
     );
     assignee.value = kept;
   }
@@ -660,6 +685,8 @@
   function openAddDialog() {
     if (busy || !state?.createUrl) return;
     $("add-task-title").value = "";
+    $("add-task-description").value = "";
+    $("add-task-due").value = "";
     $("add-task-assignee").value = "";
     const dialog = $("add-dialog");
     dialog.returnValue = "";
@@ -672,6 +699,8 @@
       notice(t().addTitleRequired);
       return;
     }
+    const description = $("add-task-description").value.trim() || null;
+    const dueDate = $("add-task-due").value || null;
     const assigneeSlackId = $("add-task-assignee").value || null;
     busy = true;
     render();
@@ -682,14 +711,19 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: AbortSignal.timeout(15000),
-        body: JSON.stringify({ title, assigneeSlackId }),
+        body: JSON.stringify({ title, description, dueDate, assigneeSlackId }),
       });
       const result = await response.json();
       if (!response.ok || !result.ok)
         throw new Error(result.error || t().addFailed);
       notice(
         assigneeSlackId && result.assignee_notified
-          ? t().addAssigned(title, names[assigneeSlackId] || assigneeSlackId)
+          ? t().addAssigned(
+              title,
+              (lang === "th" && namesTh[assigneeSlackId]) ||
+                names[assigneeSlackId] ||
+                assigneeSlackId,
+            )
           : t().addCreated(title),
       );
     } catch (error) {
