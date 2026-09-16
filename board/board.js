@@ -30,10 +30,13 @@
       empty: "등록된 업무가 없습니다",
       unowned: "담당 미상",
       due: (date) => `마감 ${date}`,
-      more: "더 보기",
-      less: "접기",
-      moreAria: (title) => `${title} 상세 내용 펼치기`,
-      lessAria: (title) => `${title} 상세 내용 접기`,
+      detailAria: (title) => `${title} 상세 보기`,
+      detailOwner: "담당자",
+      detailDue: "마감",
+      detailStatus: "상태",
+      detailDueUnset: "미정",
+      detailClose: "닫기",
+      detailNoBody: "적어 둔 상세 내용이 없습니다.",
       dueUnset: "마감 미정",
       descriptionReadOnly: "팀의 업무 흐름을 확인하세요. (보기 전용)",
       needLink: "슬랙에서 받은 업무 보드 링크를 열어 주세요.",
@@ -101,10 +104,13 @@
       empty: "ยังไม่มีงานที่บันทึกไว้",
       unowned: "ไม่ระบุผู้รับผิดชอบ",
       due: (date) => `ครบกำหนด ${date}`,
-      more: "ดูเพิ่มเติม",
-      less: "ย่อ",
-      moreAria: (title) => `ขยายรายละเอียดของ ${title}`,
-      lessAria: (title) => `ย่อรายละเอียดของ ${title}`,
+      detailAria: (title) => `ดูรายละเอียดของ ${title}`,
+      detailOwner: "ผู้รับผิดชอบ",
+      detailDue: "ครบกำหนด",
+      detailStatus: "สถานะ",
+      detailDueUnset: "ไม่ระบุ",
+      detailClose: "ปิด",
+      detailNoBody: "ยังไม่มีรายละเอียดเพิ่มเติม",
       dueUnset: "ไม่ระบุกำหนด",
       descriptionReadOnly: "ดูความคืบหน้างานของทีม (โหมดดูอย่างเดียว)",
       needLink: "กรุณาเปิดลิงก์บอร์ดงานที่ได้รับจาก Slack",
@@ -229,7 +235,6 @@
   // 설명만 두 줄로 접는다. 나눌 수 없는 제목은 그대로 두고 제목 쪽을 세 줄에서 자른다.
   const TITLE_SPLIT = /\s[—–]\s/u;
   const TITLE_HEAD_MAX = 40;
-  const expandedIds = new Set();
   function splitTitle(item) {
     const full = cardTitle(item) || "";
     const match = TITLE_SPLIT.exec(full);
@@ -241,37 +246,53 @@
       return { head: full, body: "" };
     return { head, body };
   }
-  function buildActiveCard(item, { showA2Tag = true } = {}) {
+  // 카드 상세 모달 — 카드에서는 두 줄만 보여주고, 전문은 여기서 읽는다.
+  function openDetail(item, column) {
+    const dialog = $("detail-dialog");
+    if (!dialog) return;
+    const { head, body } = splitTitle(item);
+    $("detail-title").textContent = head;
+    const rows = [
+      [t().detailStatus, t().columns[column || item.status] || item.status],
+      [t().detailOwner, owner(item)],
+      [t().detailDue, item.dueDate || t().detailDueUnset],
+    ];
+    $("detail-meta").replaceChildren(
+      ...rows.flatMap(([label, value]) => [
+        node("dt", "", label),
+        node("dd", "", value),
+      ]),
+    );
+    const bodyEl = $("detail-body");
+    bodyEl.textContent = body || t().detailNoBody;
+    bodyEl.classList.toggle("empty-body", !body);
+    $("detail-close").textContent = t().detailClose;
+    dialog.showModal();
+  }
+  function buildActiveCard(item, { showA2Tag = true, column = null } = {}) {
     const card = node("article", "card");
     card.dataset.id = item.id;
     card.draggable =
       !busy && Object.keys(item.moves || {}).length > 0;
     const { head, body } = splitTitle(item);
     card.append(node("h3", "", head));
-    if (body) {
-      if (expandedIds.has(item.id)) card.classList.add("expanded");
-      const desc = node("p", "card-desc", body);
-      const toggle = node("button", "card-more");
-      toggle.type = "button";
-      // 실제로 잘린 카드에만 붙인다 — 잘렸는지는 DOM에 들어간 뒤 render()에서 잰다.
-      toggle.hidden = true;
-      const syncToggle = () => {
-        const open = card.classList.contains("expanded");
-        toggle.textContent = open ? t().less : t().more;
-        toggle.setAttribute("aria-expanded", String(open));
-        toggle.setAttribute(
-          "aria-label",
-          open ? t().lessAria(head) : t().moreAria(head),
-        );
-      };
-      syncToggle();
-      toggle.addEventListener("click", () => {
-        if (card.classList.toggle("expanded")) expandedIds.add(item.id);
-        else expandedIds.delete(item.id);
-        syncToggle();
-      });
-      card.append(desc, toggle);
-    }
+    if (body) card.append(node("p", "card-desc", body));
+    // 2026-09-16 대표님 지시: 카드 안에서 펼치지 않고, 카드를 누르면 상세 모달을 띄운다.
+    card.tabIndex = 0;
+    card.setAttribute("aria-haspopup", "dialog");
+    card.setAttribute("aria-label", t().detailAria(head));
+    card.addEventListener("click", (event) => {
+      // 상태 이동 select·A2 버튼을 누른 건 카드를 연 게 아니다.
+      if (event.target.closest("select, button, option")) return;
+      if (dragging) return;
+      openDetail(item, column);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.target !== card) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      openDetail(item, column);
+    });
     const meta = node("div", "card-meta");
     if (showA2Tag && managed(item)) meta.append(node("span", "a2-tag", "A2"));
     const name = owner(item);
@@ -360,8 +381,8 @@
     card.addEventListener("dragend", endDrag);
     return card;
   }
-  function buildClosedCard(item) {
-    const card = buildActiveCard(item, { showA2Tag: false });
+  function buildClosedCard(item, column = null) {
+    const card = buildActiveCard(item, { showA2Tag: false, column });
     card.classList.add("closed");
     return card;
   }
@@ -416,23 +437,14 @@
       for (const item of items)
         cards.append(
           ["completed", "cancelled"].includes(column)
-            ? buildClosedCard(item)
-            : buildActiveCard(item),
+            ? buildClosedCard(item, column)
+            : buildActiveCard(item, { column }),
         );
       if (!items.length) cards.append(node("p", "empty", t().empty));
       section.append(header, cards);
       columns.append(section);
     }
     $("board-columns").replaceChildren(columns);
-    // 두 줄을 넘겨 실제로 잘린 설명에만 '더 보기'를 노출한다.
-    // 높이는 DOM에 붙은 뒤에만 잴 수 있어 여기서 처리한다.
-    for (const desc of $("board-columns").querySelectorAll(".card-desc")) {
-      const toggle = desc.nextElementSibling;
-      if (!toggle?.classList.contains("card-more")) continue;
-      toggle.hidden =
-        !desc.closest(".card").classList.contains("expanded") &&
-        desc.scrollHeight <= desc.clientHeight + 1;
-    }
     $("board-columns").setAttribute("aria-busy", String(busy));
     $("sync-status").textContent = t().syncedStatus(
       new Date(state.generatedAt).toLocaleString(

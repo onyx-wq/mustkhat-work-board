@@ -234,10 +234,7 @@ h2 {
   -webkit-line-clamp: 3;
   overflow: hidden;
 }
-.card.expanded h3 {
-  -webkit-line-clamp: unset;
-}
-/* 제목 뒤에 딸린 설명 — 기본은 두 줄, '더 보기'로 펼친다. */
+/* 제목 뒤에 딸린 설명 — 카드에서는 두 줄만, 전문은 상세 모달에서 읽는다. */
 .card-desc {
   margin-top: calc(var(--space-2) * -1);
   font-size: 12px;
@@ -249,21 +246,36 @@ h2 {
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
-.card.expanded .card-desc {
-  -webkit-line-clamp: unset;
+/* 카드를 누르면 상세 모달이 열린다는 걸 손끝으로 알리는 정도만. */
+.card {
+  cursor: pointer;
 }
-.card-more {
-  align-self: flex-start;
-  margin-top: calc(var(--space-2) * -1);
-  padding: 0;
-  border: 0;
-  background: none;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--status-progress);
+.card:hover {
+  border-color: var(--status-neutral);
 }
-.card-more:hover {
-  text-decoration: underline;
+/* 상세 모달 — 제목·상태·담당자·마감, 그리고 설명 전문. */
+#detail-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  font-size: 13px;
+}
+#detail-meta dt {
+  color: var(--muted);
+}
+#detail-meta dd {
+  margin: 0;
+}
+#detail-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+#detail-body.empty-body {
+  color: var(--muted);
 }
 .card-meta {
   display: flex;

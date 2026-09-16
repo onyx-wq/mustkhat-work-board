@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
     <title>팀 업무 보드</title>
-    <link rel="stylesheet" href="./board.css?v=202609161500" />
-    <script src="./board.js?v=202609161500" defer></script>
+    <link rel="stylesheet" href="./board.css?v=202609161600" />
+    <script src="./board.js?v=202609161600" defer></script>
   </head>
   <body>
     <main id="work-board">
@@ -51,6 +51,16 @@
         <div class="dialog-actions">
           <button value="cancel" id="finish-cancel">돌아가기</button
           ><button value="confirm" id="finish-confirm">확인</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="detail-dialog" aria-labelledby="detail-title">
+      <form method="dialog">
+        <h2 id="detail-title"></h2>
+        <dl id="detail-meta"></dl>
+        <p id="detail-body"></p>
+        <div class="dialog-actions">
+          <button value="close" id="detail-close">닫기</button>
         </div>
       </form>
     </dialog>
