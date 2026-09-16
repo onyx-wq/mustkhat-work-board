@@ -422,6 +422,30 @@ dialog input[type="date"] {
   border-radius: var(--radius-small);
   padding: var(--space-2) var(--space-3);
 }
+/* 날짜 칸 — 브라우저가 자기 UI 언어로 그리는 "연도. 월. 일."을 가리고 우리가 쓴다.
+   2026-09-16 대표님 지적: 태국어 화면인데 이 칸만 한국어로 남았다. 이 글자는
+   페이지 lang이 아니라 브라우저 언어를 따르므로 lang 속성으로는 못 바꾼다. */
+.date-field {
+  position: relative;
+}
+.date-field:not(:focus-within) input[type="date"] {
+  color: transparent;
+}
+.date-display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  pointer-events: none;
+  font: inherit;
+}
+.date-field:focus-within .date-display {
+  display: none;
+}
+.date-display.placeholder {
+  color: var(--muted);
+}
 .field-hint {
   margin-top: var(--space-1);
   font-size: 12px;

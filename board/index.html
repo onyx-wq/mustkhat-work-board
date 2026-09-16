@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
     <title>팀 업무 보드</title>
-    <link rel="stylesheet" href="./board.css?v=202609161700" />
-    <script src="./board.js?v=202609161700" defer></script>
+    <link rel="stylesheet" href="./board.css?v=202609161800" />
+    <script src="./board.js?v=202609161800" defer></script>
   </head>
   <body>
     <main id="work-board">
@@ -86,7 +86,12 @@
         ></textarea>
         <div>
           <label id="add-due-label" for="add-task-due">마감일</label>
-          <input id="add-task-due" name="dueDate" type="date" />
+          <div class="date-field">
+            <input id="add-task-due" name="dueDate" type="date" />
+            <span id="add-due-display" class="date-display placeholder"
+              >연도. 월. 일.</span
+            >
+          </div>
           <p class="field-hint" id="add-due-hint">
             비워 두면 '마감 미정'으로 올라갑니다.
           </p>

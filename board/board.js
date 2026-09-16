@@ -75,6 +75,7 @@
       addDescriptionPlaceholder: "무엇을, 어디까지 하면 되는지 적어 주세요. (선택)",
       addDueLabel: "마감일",
       addDueHint: "비워 두면 '마감 미정'으로 올라갑니다.",
+      addDuePlaceholder: "연도. 월. 일.",
       addTitlePlaceholder: "예: 상세페이지 초안 작업",
       addAssigneeLabel: "담당자",
       addConfirm: "등록",
@@ -152,6 +153,7 @@
       addDescriptionPlaceholder: "ระบุว่าต้องทำอะไรและถึงขั้นไหน (ไม่บังคับ)",
       addDueLabel: "กำหนดส่ง",
       addDueHint: "เว้นว่างไว้จะขึ้นว่า \"ไม่ระบุกำหนด\"",
+      addDuePlaceholder: "ปี/เดือน/วัน",
       addTitlePlaceholder: "เช่น ร่างหน้ารายละเอียดสินค้า",
       addAssigneeLabel: "ผู้รับผิดชอบ",
       addConfirm: "บันทึก",
@@ -439,6 +441,24 @@
       ),
     );
     assignee.value = kept;
+    syncDueDisplay();
+  }
+  // 날짜 칸의 글자는 우리가 그린다(브라우저 UI 언어를 따라가지 않게).
+  // 칸에 포커스가 가면 CSS가 이 글자를 감추고 브라우저 원래 입력칸이 드러난다.
+  function syncDueDisplay() {
+    const input = $("add-task-due");
+    const display = $("add-due-display");
+    if (!input || !display) return;
+    if (input.value) {
+      const [y, m, d] = input.value.split("-").map(Number);
+      display.textContent = new Date(y, m - 1, d).toLocaleDateString(
+        lang === "th" ? "th-TH" : "ko-KR",
+      );
+      display.classList.remove("placeholder");
+    } else {
+      display.textContent = t().addDuePlaceholder;
+      display.classList.add("placeholder");
+    }
   }
   function render() {
     renderChrome();
@@ -688,6 +708,7 @@
     $("add-task-description").value = "";
     $("add-task-due").value = "";
     $("add-task-assignee").value = "";
+    syncDueDisplay();
     const dialog = $("add-dialog");
     dialog.returnValue = "";
     dialog.showModal();
@@ -735,6 +756,18 @@
     }
   }
   $("add-task").addEventListener("click", openAddDialog);
+  $("add-task-due").addEventListener("input", syncDueDisplay);
+  $("add-task-due").addEventListener("change", syncDueDisplay);
+  $("add-task-due").addEventListener("blur", syncDueDisplay);
+  // 글자를 가려 둔 칸이라 직접 타자 치기보다 달력으로 고르는 게 자연스럽다.
+  // showPicker를 지원하지 않는 브라우저에서는 평소대로 입력칸이 열린다.
+  $("add-task-due").addEventListener("click", (event) => {
+    try {
+      event.currentTarget.showPicker();
+    } catch {
+      /* 지원하지 않으면 기본 동작에 맡긴다 */
+    }
+  });
   $("add-dialog").addEventListener("close", () => {
     if ($("add-dialog").returnValue === "confirm") submitAddTask();
   });
