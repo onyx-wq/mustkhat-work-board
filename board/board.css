@@ -401,7 +401,7 @@ dialog form {
   gap: var(--space-4);
 }
 #add-dialog form {
-  gap: var(--space-6);
+  gap: var(--space-4);
 }
 dialog h2 {
   font-size: 18px;
@@ -427,7 +427,7 @@ dialog textarea {
   border-radius: var(--radius-small);
   padding: var(--space-3);
   resize: vertical;
-  min-height: 8rem;
+  min-height: 6rem;
   line-height: 1.6;
 }
 dialog input[type="date"] {
@@ -462,15 +462,29 @@ dialog input[type="date"] {
 .date-display.placeholder {
   color: var(--muted);
 }
-/* 넓어진 창을 활용해 짧은 칸 둘(마감일·담당자)을 한 줄에 놓는다. */
-.field-row {
+/* 2026-09-16 대표님 지적: 창이 세로로 너무 길다. 넓어진 가로를 써서
+   왼쪽에 업무 내용, 오른쪽에 마감일·담당자를 놓아 높이를 줄인다. */
+.form-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
-  align-items: start;
+  align-items: stretch;
+}
+.side-fields {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+/* 왼쪽 입력칸이 오른쪽 두 칸만큼 자라 양쪽 바닥이 맞는다. */
+.field-fill {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+.field-fill textarea {
+  height: 100%;
 }
 @media (max-width: 34rem) {
-  .field-row {
+  .form-columns {
     grid-template-columns: 1fr;
   }
 }

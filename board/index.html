@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
     <title>팀 업무 보드</title>
-    <link rel="stylesheet" href="./board.css?v=202609162100" />
-    <script src="./board.js?v=202609162100" defer></script>
+    <link rel="stylesheet" href="./board.css?v=202609162200" />
+    <script src="./board.js?v=202609162200" defer></script>
   </head>
   <body>
     <main id="work-board">
@@ -67,39 +67,47 @@
     <dialog id="add-dialog" aria-labelledby="add-title">
       <form method="dialog" id="add-form">
         <h2 id="add-title">새 업무 등록</h2>
-        <label id="add-title-label" for="add-task-title">업무 제목</label>
-        <input
-          id="add-task-title"
-          name="title"
-          type="text"
-          required
-          maxlength="200"
-        />
-        <label id="add-description-label" for="add-task-description"
-          >업무 내용</label
-        >
-        <textarea
-          id="add-task-description"
-          name="description"
-          rows="6"
-          maxlength="2000"
-        ></textarea>
-        <div class="field-row">
-          <div>
-            <label id="add-due-label" for="add-task-due">마감일</label>
-            <div class="date-field">
-              <input id="add-task-due" name="dueDate" type="date" />
-              <span id="add-due-display" class="date-display placeholder"
-                >연도. 월. 일.</span
-              >
-            </div>
-            <p class="field-hint" id="add-due-hint">
-              비워 두면 '마감 미정'으로 올라갑니다.
-            </p>
+        <div>
+          <label id="add-title-label" for="add-task-title">업무 제목</label>
+          <input
+            id="add-task-title"
+            name="title"
+            type="text"
+            required
+            maxlength="200"
+          />
+        </div>
+        <div class="form-columns">
+          <div class="field-fill">
+            <label id="add-description-label" for="add-task-description"
+              >업무 내용</label
+            >
+            <textarea
+              id="add-task-description"
+              name="description"
+              rows="5"
+              maxlength="2000"
+            ></textarea>
           </div>
-          <div>
-            <label id="add-assignee-label" for="add-task-assignee">담당자</label>
-            <select id="add-task-assignee" name="assignee"></select>
+          <div class="side-fields">
+            <div>
+              <label id="add-due-label" for="add-task-due">마감일</label>
+              <div class="date-field">
+                <input id="add-task-due" name="dueDate" type="date" />
+                <span id="add-due-display" class="date-display placeholder"
+                  >연도. 월. 일.</span
+                >
+              </div>
+              <p class="field-hint" id="add-due-hint">
+                비워 두면 '마감 미정'으로 올라갑니다.
+              </p>
+            </div>
+            <div>
+              <label id="add-assignee-label" for="add-task-assignee"
+                >담당자</label
+              >
+              <select id="add-task-assignee" name="assignee"></select>
+            </div>
           </div>
         </div>
         <div class="dialog-actions">
