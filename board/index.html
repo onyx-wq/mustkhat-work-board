@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
     <title>팀 업무 보드</title>
-    <link rel="stylesheet" href="./board.css?v=202609161900" />
-    <script src="./board.js?v=202609161900" defer></script>
+    <link rel="stylesheet" href="./board.css?v=202609162100" />
+    <script src="./board.js?v=202609162100" defer></script>
   </head>
   <body>
     <main id="work-board">
@@ -81,23 +81,27 @@
         <textarea
           id="add-task-description"
           name="description"
-          rows="4"
+          rows="6"
           maxlength="2000"
         ></textarea>
-        <div>
-          <label id="add-due-label" for="add-task-due">마감일</label>
-          <div class="date-field">
-            <input id="add-task-due" name="dueDate" type="date" />
-            <span id="add-due-display" class="date-display placeholder"
-              >연도. 월. 일.</span
-            >
+        <div class="field-row">
+          <div>
+            <label id="add-due-label" for="add-task-due">마감일</label>
+            <div class="date-field">
+              <input id="add-task-due" name="dueDate" type="date" />
+              <span id="add-due-display" class="date-display placeholder"
+                >연도. 월. 일.</span
+              >
+            </div>
+            <p class="field-hint" id="add-due-hint">
+              비워 두면 '마감 미정'으로 올라갑니다.
+            </p>
           </div>
-          <p class="field-hint" id="add-due-hint">
-            비워 두면 '마감 미정'으로 올라갑니다.
-          </p>
+          <div>
+            <label id="add-assignee-label" for="add-task-assignee">담당자</label>
+            <select id="add-task-assignee" name="assignee"></select>
+          </div>
         </div>
-        <label id="add-assignee-label" for="add-task-assignee">담당자</label>
-        <select id="add-task-assignee" name="assignee"></select>
         <div class="dialog-actions">
           <button value="cancel" id="add-cancel" type="submit" formnovalidate>
             돌아가기</button

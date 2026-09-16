@@ -377,8 +377,21 @@ dialog {
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   padding: var(--space-6);
-  max-width: 440px;
+  width: min(28rem, calc(100vw - var(--space-8)));
+  max-width: none;
+  max-height: calc(100vh - var(--space-8));
   box-shadow: var(--shadow);
+}
+/* 칸이 여럿인 창은 넉넉하게 — 440px에 묶여 스크롤이 생겼다(2026-09-16 대표님 지적).
+   화면이 좁으면 알아서 줄고, 그때만 안쪽에서 스크롤한다. */
+#add-dialog,
+#detail-dialog {
+  width: min(44rem, calc(100vw - var(--space-8)));
+}
+#add-dialog form,
+#detail-dialog form {
+  max-height: calc(100vh - var(--space-8) * 2);
+  overflow-y: auto;
 }
 dialog::backdrop {
   background: hsl(220 20% 16% / 0.3);
@@ -386,6 +399,9 @@ dialog::backdrop {
 dialog form {
   display: grid;
   gap: var(--space-4);
+}
+#add-dialog form {
+  gap: var(--space-6);
 }
 dialog h2 {
   font-size: 18px;
@@ -409,9 +425,9 @@ dialog textarea {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-small);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3);
   resize: vertical;
-  min-height: 5rem;
+  min-height: 8rem;
   line-height: 1.6;
 }
 dialog input[type="date"] {
@@ -445,6 +461,18 @@ dialog input[type="date"] {
 }
 .date-display.placeholder {
   color: var(--muted);
+}
+/* 넓어진 창을 활용해 짧은 칸 둘(마감일·담당자)을 한 줄에 놓는다. */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+@media (max-width: 34rem) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
 }
 .field-hint {
   margin-top: var(--space-1);
