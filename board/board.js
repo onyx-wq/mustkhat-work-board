@@ -87,6 +87,15 @@
       addAssigned: (title, name) =>
         `“${title}” 업무를 ${name}님에게 배정하고 알림을 보냈습니다.`,
       addFailed: "등록하지 못했습니다.",
+      detailEdit: "수정",
+      editDialogTitle: "업무 수정",
+      editConfirm: "저장",
+      editSaving: "저장 중…",
+      editSaved: (title) => `“${title}” 업무를 수정했습니다.`,
+      editReassigned: (title, name) =>
+        `“${title}” 업무를 ${name}님에게 넘기고 알림을 보냈습니다.`,
+      editFailed: "수정하지 못했습니다.",
+      editManaged: "A2 대기 항목은 /wait에서 고쳐 주세요.",
     },
     th: {
       title: "บอร์ดงานทีม",
@@ -167,6 +176,15 @@
       addAssigned: (title, name) =>
         `มอบหมายงาน “${title}” ให้ ${name} และส่งการแจ้งเตือนแล้ว`,
       addFailed: "บันทึกไม่สำเร็จ",
+      detailEdit: "แก้ไข",
+      editDialogTitle: "แก้ไขงาน",
+      editConfirm: "บันทึก",
+      editSaving: "กำลังบันทึก…",
+      editSaved: (title) => `แก้ไขงาน “${title}” แล้ว`,
+      editReassigned: (title, name) =>
+        `ย้ายงาน “${title}” ให้ ${name} และส่งการแจ้งเตือนแล้ว`,
+      editFailed: "แก้ไขไม่สำเร็จ",
+      editManaged: "รายการรอของ A2 กรุณาแก้ไขผ่าน /wait",
     },
   };
   let lang = localStorage.getItem("board-lang") === "th" ? "th" : "ko";
@@ -212,6 +230,9 @@
     format: "json",
   });
   let state = null,
+    // 2026-09-17 대표님 요구: 카드를 눌러 내용을 고칠 수 있게 한다. 등록 창을
+    // 그대로 재사용하고, 이 값이 채워져 있으면 '수정', 비어 있으면 '등록'이다.
+    editingId = null,
     dragging = null,
     busy = false,
     loading = false,
@@ -286,6 +307,20 @@
     bodyEl.textContent = body || t().detailNoBody;
     bodyEl.classList.toggle("empty-body", !body);
     $("detail-close").textContent = t().detailClose;
+    // A2가 미러링한 카드는 원본이 /wait에 있어 여기서 고치면 다음 동기화가
+    // 덮어쓴다 — 서버도 거절하므로 버튼 자체를 숨긴다.
+    const editButton = $("detail-edit");
+    if (editButton) {
+      const editable = !!state?.updateUrl && !managed(item);
+      editButton.hidden = !editable;
+      editButton.textContent = t().detailEdit;
+      editButton.onclick = editable
+        ? () => {
+            dialog.close();
+            openTaskDialog(item);
+          }
+        : null;
+    }
     dialog.showModal();
   }
   function buildActiveCard(item, { showA2Tag = true, column = null } = {}) {
@@ -421,7 +456,6 @@
     $("lang-ko").setAttribute("aria-pressed", String(lang === "ko"));
     $("lang-th").setAttribute("aria-pressed", String(lang === "th"));
     $("add-task").textContent = t().addTask;
-    $("add-title").textContent = t().addDialogTitle;
     $("add-title-label").textContent = t().addTitleLabel;
     $("add-task-title").placeholder = t().addTitlePlaceholder;
     $("add-description-label").textContent = t().addDescriptionLabel;
@@ -430,7 +464,8 @@
     $("add-due-hint").textContent = t().addDueHint;
     $("add-assignee-label").textContent = t().addAssigneeLabel;
     $("add-cancel").textContent = t().dialogBack;
-    $("add-confirm").textContent = t().addConfirm;
+    // 창 제목·확인 버튼은 등록/수정 모드에 따라 달라진다.
+    applyDialogMode();
     const assignee = $("add-task-assignee");
     const kept = assignee.value;
     // 2026-09-16 대표님 지적: 담당자 목록만 한국어로 남아 있었다. 카드의 담당자
@@ -707,19 +742,35 @@
   // 2026-09-10 사용자 요구: "업무등록을 이 대시보드에서도 할 수 있게" — /task와
   // 같은 등록 로직(team-reporting의 registerWorkItem)을 이 보드에서 직접 호출한다.
   // 등록 주소(createUrl)는 서버가 보드 조회 응답에 이미 서명해서 내려준다.
-  function openAddDialog() {
-    if (busy || !state?.createUrl) return;
-    $("add-task-title").value = "";
-    $("add-task-description").value = "";
-    $("add-task-due").value = "";
-    $("add-task-assignee").value = "";
+  // item을 주면 '수정', 안 주면 '등록'이다. 창은 하나만 쓴다 — 칸 구성이 똑같은데
+  // 창을 둘로 나누면 마감일·담당자 위젯이 두 벌이 되어 서로 어긋난다.
+  function openTaskDialog(item = null) {
+    if (busy) return;
+    if (item ? !state?.updateUrl : !state?.createUrl) return;
+    editingId = item?.id || null;
+    // 태국어 화면에서도 채워 넣는 값은 한국어 원문(title·description)이다 —
+    // 번역문을 저장하면 원문이 사라지고 다음 번역이 번역문을 다시 번역한다.
+    $("add-task-title").value = item?.title || "";
+    $("add-task-description").value = item?.description || "";
+    $("add-task-due").value = item?.dueDate || "";
+    $("add-task-assignee").value = item
+      ? (item.ownerName || "").replace(/^<@|>$/g, "")
+      : "";
     syncDueDisplay();
+    applyDialogMode();
     const dialog = $("add-dialog");
     dialog.returnValue = "";
     dialog.showModal();
     $("add-task-title").focus();
   }
+  function applyDialogMode() {
+    $("add-title").textContent = editingId
+      ? t().editDialogTitle
+      : t().addDialogTitle;
+    $("add-confirm").textContent = editingId ? t().editConfirm : t().addConfirm;
+  }
   async function submitAddTask() {
+    const editing = editingId;
     const title = $("add-task-title").value.trim();
     if (!title) {
       notice(t().addTitleRequired);
@@ -736,37 +787,59 @@
     const assigneeSlackId = $("add-task-assignee").value || null;
     busy = true;
     render();
-    $("sync-status").textContent = t().addCreating;
+    $("sync-status").textContent = editing ? t().editSaving : t().addCreating;
     notice("");
     try {
-      const response = await fetch(state.createUrl, {
+      const response = await fetch(editing ? state.updateUrl : state.createUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: AbortSignal.timeout(15000),
-        body: JSON.stringify({ title, description, dueDate, assigneeSlackId }),
+        body: JSON.stringify({
+          ...(editing ? { itemId: editing } : {}),
+          title,
+          description,
+          dueDate,
+          assigneeSlackId,
+        }),
       });
       const result = await response.json();
-      if (!response.ok || !result.ok)
-        throw new Error(result.error || t().addFailed);
-      notice(
-        assigneeSlackId && result.assignee_notified
-          ? t().addAssigned(
-              title,
-              (lang === "th" && namesTh[assigneeSlackId]) ||
-                names[assigneeSlackId] ||
-                assigneeSlackId,
-            )
-          : t().addCreated(title),
-      );
+      if (!response.ok || !result.ok) {
+        // A2 카드는 서버가 거절한다 — 원인을 그대로 보여줘야 사용자가
+        // 어디서 고쳐야 하는지 안다.
+        if (result.error === "managed_by_waiting_tracker")
+          throw new Error(t().editManaged);
+        if (result.error === "assignee_required")
+          throw new Error(t().addAssigneeRequired);
+        throw new Error(result.error || (editing ? t().editFailed : t().addFailed));
+      }
+      const assigneeName =
+        (lang === "th" && namesTh[assigneeSlackId]) ||
+        names[assigneeSlackId] ||
+        assigneeSlackId;
+      if (editing) {
+        notice(
+          result.assignee_notified
+            ? t().editReassigned(title, assigneeName)
+            : t().editSaved(title),
+        );
+      } else {
+        notice(
+          assigneeSlackId && result.assignee_notified
+            ? t().addAssigned(title, assigneeName)
+            : t().addCreated(title),
+        );
+      }
     } catch (error) {
-      notice(`${t().addFailed} ${error.message || ""}`.trim());
+      const prefix = editing ? t().editFailed : t().addFailed;
+      notice(`${prefix} ${error.message || ""}`.trim());
     } finally {
+      editingId = null;
       busy = false;
       render();
       load();
     }
   }
-  $("add-task").addEventListener("click", openAddDialog);
+  $("add-task").addEventListener("click", () => openTaskDialog());
   $("add-task-due").addEventListener("input", syncDueDisplay);
   $("add-task-due").addEventListener("change", syncDueDisplay);
   $("add-task-due").addEventListener("blur", syncDueDisplay);
@@ -781,6 +854,9 @@
   });
   $("add-dialog").addEventListener("close", () => {
     if ($("add-dialog").returnValue === "confirm") submitAddTask();
+    // 돌아가기로 닫았으면 편집 상태를 반드시 푼다 — 안 그러면 다음에 연
+    // '새 업무'가 조용히 수정으로 동작한다.
+    else editingId = null;
   });
   function setLang(next) {
     if (next === lang) return;

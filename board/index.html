@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
     <title>팀 업무 보드</title>
-    <link rel="stylesheet" href="./board.css?v=202609162200" />
-    <script src="./board.js?v=202609162200" defer></script>
+    <link rel="stylesheet" href="./board.css?v=202609170900" />
+    <script src="./board.js?v=202609170900" defer></script>
   </head>
   <body>
     <main id="work-board">
@@ -60,7 +60,10 @@
         <dl id="detail-meta"></dl>
         <p id="detail-body"></p>
         <div class="dialog-actions">
-          <button value="close" id="detail-close">닫기</button>
+          <button value="close" id="detail-close">닫기</button
+          ><button value="edit" id="detail-edit" type="button" hidden>
+            수정
+          </button>
         </div>
       </form>
     </dialog>
