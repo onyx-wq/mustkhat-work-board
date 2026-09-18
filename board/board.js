@@ -88,6 +88,9 @@
         `“${title}” 업무를 ${name}님에게 배정하고 알림을 보냈습니다.`,
       addFailed: "등록하지 못했습니다.",
       detailEdit: "수정",
+      detailEditLocked: "수정 불가",
+      detailEditLockedWhy:
+        "A2 대기 목록에서 가져온 카드입니다. 원본이 저쪽에 있어 여기서 고쳐도 다음 동기화 때 되돌아갑니다.",
       editDialogTitle: "업무 수정",
       editConfirm: "저장",
       editSaving: "저장 중…",
@@ -177,6 +180,9 @@
         `มอบหมายงาน “${title}” ให้ ${name} และส่งการแจ้งเตือนแล้ว`,
       addFailed: "บันทึกไม่สำเร็จ",
       detailEdit: "แก้ไข",
+      detailEditLocked: "แก้ไขไม่ได้",
+      detailEditLockedWhy:
+        "การ์ดนี้ดึงมาจากรายการรอของ A2 ต้นฉบับอยู่ที่นั่น หากแก้ที่นี่ การซิงก์ครั้งถัดไปจะเปลี่ยนกลับ",
       editDialogTitle: "แก้ไขงาน",
       editConfirm: "บันทึก",
       editSaving: "กำลังบันทึก…",
@@ -311,15 +317,30 @@
     // 덮어쓴다 — 서버도 거절하므로 버튼 자체를 숨긴다.
     const editButton = $("detail-edit");
     if (editButton) {
-      const editable = !!state?.updateUrl && !managed(item);
-      editButton.hidden = !editable;
-      editButton.textContent = t().detailEdit;
-      editButton.onclick = editable
-        ? () => {
-            dialog.close();
-            openTaskDialog(item);
-          }
-        : null;
+      // 2026-09-18 대표님 보고: 취소 칸 카드를 진행 중으로 옮겨도 [수정]이 안 뜬다.
+      // 원인은 그 카드들이 A2 미러(externalId가 wait:)라 원래부터 감춰지는 것이었다.
+      // 버튼이 말없이 사라지면 고장으로 보이므로, 이제는 이유를 달아 비활성으로 보여준다.
+      // (열람 권한만 있는 링크에서는 지금처럼 버튼 자체를 숨긴다.)
+      const mirrored = managed(item);
+      const hasPermission = !!state?.updateUrl;
+      editButton.hidden = !hasPermission;
+      editButton.disabled = mirrored;
+      editButton.textContent = mirrored ? t().detailEditLocked : t().detailEdit;
+      editButton.title = mirrored ? t().detailEditLockedWhy : "";
+      editButton.onclick =
+        hasPermission && !mirrored
+          ? () => {
+              dialog.close();
+              openTaskDialog(item);
+            }
+          : null;
+    }
+    // 못 고치는 이유는 버튼 툴팁만으로는 눈에 안 띄므로 본문 아래 한 줄로도 적는다.
+    const lockNote = $("detail-lock-note");
+    if (lockNote) {
+      const mirrored = managed(item);
+      lockNote.hidden = !mirrored;
+      lockNote.textContent = mirrored ? t().detailEditLockedWhy : "";
     }
     dialog.showModal();
   }
