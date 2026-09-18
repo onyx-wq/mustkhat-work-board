@@ -148,7 +148,7 @@ h2 {
 }
 #board-columns {
   display: grid;
-  grid-template-columns: repeat(5, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, minmax(200px, 1fr));
   gap: var(--space-4);
   align-items: start;
   overflow-x: auto;
@@ -542,7 +542,7 @@ dialog input[type="date"] {
     justify-content: space-between;
   }
   #board-columns {
-    grid-template-columns: repeat(5, 240px);
+    grid-template-columns: repeat(4, 240px);
   }
 }
 @media (prefers-reduced-motion: reduce) {

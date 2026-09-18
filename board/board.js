@@ -215,17 +215,23 @@
   // 보고서와 같은 핵심 칸을 보여준다. A2 원본 대기는 별도 칸을 만들지 않고
   // 진행 중 흐름에서 A2 버튼으로 처리한다. 완료·취소된 카드도 다시 활성 칸으로
   // 되돌릴 수 있게 한다.
-  const COLUMN_ORDER = ["open", "in_progress", "blocked", "completed", "cancelled"];
+  // 2026-09-18 대표님 지시: 취소 칸을 화면에서 뺀다. A2 대기 데이터를 전부 지워
+  // 자동으로 취소 상태가 들어올 곳이 없어졌고, 아침 슬랙 보고도 취소를 세지 않는다.
+  // "안 하기로 했다"는 삭제로, 끝난 일은 완료로 닫는다. DB의 cancelled 상태값은
+  // 그대로 두었으므로, 되살리려면 아래 두 곳(COLUMN_ORDER·transitions)에 다시
+  // "cancelled"를 넣으면 된다.
+  const COLUMN_ORDER = ["open", "in_progress", "blocked", "completed"];
   const inColumn = (item, column) =>
     column === "in_progress"
       ? item.status === "in_progress" || item.status === "waiting"
       : item.status === column;
   const transitions = {
-    open: ["in_progress", "blocked", "completed", "cancelled"],
-    in_progress: ["open", "blocked", "completed", "cancelled"],
-    blocked: ["open", "in_progress", "completed", "cancelled"],
-    waiting: ["open", "in_progress", "blocked", "completed", "cancelled"],
-    completed: ["open", "in_progress", "blocked", "cancelled"],
+    open: ["in_progress", "blocked", "completed"],
+    in_progress: ["open", "blocked", "completed"],
+    blocked: ["open", "in_progress", "completed"],
+    waiting: ["open", "in_progress", "blocked", "completed"],
+    completed: ["open", "in_progress", "blocked"],
+    // 옛 데이터에 cancelled가 남아 있으면 다시 꺼낼 길은 열어 둔다.
     cancelled: ["open", "in_progress", "blocked", "completed"],
   };
   const names = {
