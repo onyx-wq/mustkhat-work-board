@@ -5,6 +5,8 @@
   --status-waiting: hsl(43 72% 42%);
   --status-blocked: hsl(25 80% 43%);
   --status-completed: hsl(151 50% 35%);
+  /* 되돌릴 수 없는 동작(삭제)에만 쓴다 — 상태 배지에는 쓰지 않는다. */
+  --danger: hsl(0 62% 45%);
   --background: hsl(220 20% 97%);
   --surface: hsl(0 0% 100%);
   --column: hsl(220 16% 94%);
@@ -497,6 +499,35 @@ dialog input[type="date"] {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
+}
+/* 2026-09-18: 카드 상세의 닫기를 오른쪽 위 X로. form이 세로 격자라
+   그 흐름에서 빼내(absolute) 제목 줄 오른쪽 끝에 붙인다. */
+#detail-dialog form {
+  position: relative;
+}
+.dialog-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.dialog-close:hover {
+  color: var(--text);
+}
+/* 삭제는 되돌릴 수 없으니 다른 버튼과 구분되게 둔다 — 다만 실수로 먼저
+   눈에 띄지 않도록 채우지 않고 글자만 경고색으로. */
+#detail-delete {
+  color: var(--danger);
 }
 @media (max-width: 700px) {
   #work-board {

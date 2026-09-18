@@ -98,6 +98,14 @@
       editReassigned: (title, name) =>
         `“${title}” 업무를 ${name}님에게 넘기고 알림을 보냈습니다.`,
       editFailed: "수정하지 못했습니다.",
+      detailDelete: "삭제",
+      deleteConfirmTitle: "삭제",
+      deleteConfirmBody: (title) =>
+        `“${title}” 업무를 지웁니다. 되돌릴 수 없습니다.`,
+      deleting: "삭제 중…",
+      deleted: (title) => `“${title}” 업무를 지웠습니다.`,
+      deleteFailed: "삭제하지 못했습니다.",
+      deleteLocked: "A2 대기 항목은 /wait에서 처리해 주세요.",
       editManaged: "A2 대기 항목은 /wait에서 고쳐 주세요.",
     },
     th: {
@@ -190,6 +198,13 @@
       editReassigned: (title, name) =>
         `ย้ายงาน “${title}” ให้ ${name} และส่งการแจ้งเตือนแล้ว`,
       editFailed: "แก้ไขไม่สำเร็จ",
+      detailDelete: "ลบ",
+      deleteConfirmTitle: "ลบ",
+      deleteConfirmBody: (title) => `จะลบงาน “${title}” ย้อนกลับไม่ได้`,
+      deleting: "กำลังลบ…",
+      deleted: (title) => `ลบงาน “${title}” แล้ว`,
+      deleteFailed: "ลบไม่สำเร็จ",
+      deleteLocked: "รายการรอของ A2 กรุณาจัดการผ่าน /wait",
       editManaged: "รายการรอของ A2 กรุณาแก้ไขผ่าน /wait",
     },
   };
@@ -312,7 +327,9 @@
     const bodyEl = $("detail-body");
     bodyEl.textContent = body || t().detailNoBody;
     bodyEl.classList.toggle("empty-body", !body);
-    $("detail-close").textContent = t().detailClose;
+    // 닫기는 이제 오른쪽 위 × 이므로 글자를 덮어쓰면 안 된다 — 읽어 주는
+    // 이름만 화면 언어에 맞춘다.
+    $("detail-close").setAttribute("aria-label", t().detailClose);
     // A2가 미러링한 카드는 원본이 /wait에 있어 여기서 고치면 다음 동기화가
     // 덮어쓴다 — 서버도 거절하므로 버튼 자체를 숨긴다.
     const editButton = $("detail-edit");
@@ -332,6 +349,25 @@
           ? () => {
               dialog.close();
               openTaskDialog(item);
+            }
+          : null;
+    }
+    // 2026-09-18 대표님 요구: 취소가 아니라 삭제. 오타·시험·중복 카드를 '취소'로
+    // 남기면 "검토 끝에 취소했다"는 거짓 기록이 된다. 수정과 같은 규칙으로
+    // A2 미러 카드는 막고(서버도 409로 거절), 지우기 전에 한 번 확인을 받는다.
+    const deleteButton = $("detail-delete");
+    if (deleteButton) {
+      const mirrored = managed(item);
+      const hasPermission = !!state?.deleteUrl;
+      deleteButton.hidden = !hasPermission;
+      deleteButton.disabled = mirrored;
+      deleteButton.textContent = t().detailDelete;
+      deleteButton.title = mirrored ? t().deleteLocked : "";
+      deleteButton.onclick =
+        hasPermission && !mirrored
+          ? () => {
+              dialog.close();
+              removeTask(item);
             }
           : null;
     }
@@ -789,6 +825,37 @@
       ? t().editDialogTitle
       : t().addDialogTitle;
     $("add-confirm").textContent = editingId ? t().editConfirm : t().addConfirm;
+  }
+  async function removeTask(item) {
+    if (busy || !state?.deleteUrl) return;
+    const { head } = splitTitle(item);
+    const label = t().deleteConfirmTitle;
+    if (!(await confirmFinish(label, t().deleteConfirmBody(head)))) return;
+    busy = true;
+    render();
+    $("sync-status").textContent = t().deleting;
+    notice("");
+    try {
+      const response = await fetch(state.deleteUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(15000),
+        body: JSON.stringify({ itemId: item.id }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) {
+        if (result.error === "managed_by_waiting_tracker")
+          throw new Error(t().deleteLocked);
+        throw new Error(result.error || t().deleteFailed);
+      }
+      notice(t().deleted(head));
+    } catch (error) {
+      notice(`${t().deleteFailed} ${error.message || ""}`.trim());
+    } finally {
+      busy = false;
+      render();
+      load();
+    }
   }
   async function submitAddTask() {
     const editing = editingId;
