@@ -558,3 +558,13 @@ dialog input[type="date"] {
   font-size: 0.85rem;
   line-height: 1.5;
 }
+
+/* 2026-09-18 대표님 보고: 카드와 상세 창 X의 파란 초점 테두리가 잘린다.
+   기본 테두리는 요소 바깥 3px에 그려지는데(:focus-visible), 카드는 가로 스크롤
+   상자(#board-columns) 안에, X는 세로 스크롤 상자(#detail-dialog form) 안에 있어
+   경계에서 잘려 나간다. 스크롤 상자에 여백을 주면 레이아웃이 밀리므로,
+   이 둘만 테두리를 안쪽에 그린다 — 초점 표시는 그대로 보이고 잘리지 않는다. */
+.card:focus-visible,
+.dialog-close:focus-visible {
+  outline-offset: -2px;
+}
