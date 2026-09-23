@@ -568,3 +568,14 @@ dialog input[type="date"] {
 .dialog-close:focus-visible {
   outline-offset: -2px;
 }
+
+/* 2026-09-23 대표님 보고: 등록 창의 업무 제목·업무 내용에 초점이 가면 파란 테두리의
+   좌우가 잘리고 위아래 줄만 남는다. 원인은 카드·X 때와 같다 — 기본 :focus-visible이
+   테두리를 요소 바깥 3px에 그리는데, 입력칸이 width:100%로 창 너비를 꽉 채우고 있고
+   창(#add-dialog form)이 overflow-y:auto 스크롤 상자라 튀어나간 좌우가 잘려나간다.
+   안쪽에 그리면 네 변이 온전한 한 겹 테두리로 보인다. */
+dialog input:focus-visible,
+dialog textarea:focus-visible,
+dialog select:focus-visible {
+  outline-offset: -2px;
+}
