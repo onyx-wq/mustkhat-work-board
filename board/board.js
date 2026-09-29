@@ -27,6 +27,7 @@
       a2Reply: "회신 완료",
       a2Done: "작업 완료",
       a2Managed: "A2 연동 · 처리 완료",
+      a2InSlack: "슬랙 DM의 단추로 처리합니다",
       empty: "등록된 업무가 없습니다",
       unowned: "담당 미상",
       due: (date) => `마감 ${date}`,
@@ -144,6 +145,7 @@
       a2Reply: "ตอบกลับแล้ว",
       a2Done: "งานเสร็จแล้ว",
       a2Managed: "เชื่อม A2 · ดำเนินการเสร็จแล้ว",
+      a2InSlack: "จัดการด้วยปุ่มใน DM ของ Slack",
       empty: "ยังไม่มีงานที่บันทึกไว้",
       unowned: "ไม่ระบุผู้รับผิดชอบ",
       due: (date) => `ครบกำหนด ${date}`,
@@ -474,28 +476,11 @@
       meta.append(node("span", "due unset", t().dueUnset));
     }
     card.append(meta);
+    // 2026-09-29 박찬우 PM: "회신 완료는 슬랙에 가는 걸 생각했는데 왜 보드에 보여, 보드엔
+    // 보이면 안 돼". [회신 완료]·[작업 완료]는 받은 사람의 슬랙 DM에만 둔다. 보드에는
+    // 어디서 처리하는지만 적는다. (a2Action은 남겨 두지만 보드에서는 부르지 않는다.)
     if (managed(item) && !["completed", "cancelled"].includes(item.status)) {
-      const actions = node("div", "actions");
-      if (item.a2Actions?.reply) {
-        const btn = node("button", "a2-reply", t().a2Reply);
-        btn.type = "button";
-        btn.disabled = busy;
-        btn.addEventListener("click", () =>
-          a2Action(item, "reply", item.a2Actions.reply),
-        );
-        actions.append(btn);
-      }
-      if (item.a2Actions?.done) {
-        const btn = node("button", "a2-done", t().a2Done);
-        btn.type = "button";
-        btn.disabled = busy;
-        btn.addEventListener("click", () =>
-          a2Action(item, "done", item.a2Actions.done),
-        );
-        actions.append(btn);
-      }
-      if (actions.children.length) card.append(actions);
-      else card.append(node("p", "managed", t().a2Managed));
+      card.append(node("p", "managed", t().a2InSlack));
     } else {
       const select = node("select");
       select.setAttribute("aria-label", t().moveAria(head));
