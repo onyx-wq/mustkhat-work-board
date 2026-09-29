@@ -477,10 +477,10 @@
     }
     card.append(meta);
     // 2026-09-29 박찬우 PM: "회신 완료는 슬랙에 가는 걸 생각했는데 왜 보드에 보여, 보드엔
-    // 보이면 안 돼". [회신 완료]·[작업 완료]는 받은 사람의 슬랙 DM에만 둔다. 보드에는
-    // 어디서 처리하는지만 적는다. (a2Action은 남겨 두지만 보드에서는 부르지 않는다.)
+    // 보이면 안 돼". [회신 완료]·[작업 완료]는 받은 사람의 슬랙 DM에만 둔다. 안내 문구도
+    // 두지 않는다("보드에 슬랙 어쩌구 그 말을 왜 있는 거"). A2 카드에는 단추를 두지 않는다(끌어서 옮기기는 된다).
     if (managed(item) && !["completed", "cancelled"].includes(item.status)) {
-      card.append(node("p", "managed", t().a2InSlack));
+      /* 비워 둔다 */
     } else {
       const select = node("select");
       select.setAttribute("aria-label", t().moveAria(head));
