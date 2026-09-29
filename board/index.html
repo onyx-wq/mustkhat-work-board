@@ -54,6 +54,39 @@
         </div>
       </form>
     </dialog>
+    <!-- 2026-09-29 박찬우 PM 요구: 보드의 막힘과 /wait을 같은 기능으로. 막힘으로
+         옮길 때 기다리는 상대를 고르면 /wait과 같은 단추 DM이 간다. -->
+    <dialog id="wait-dialog" aria-labelledby="wait-title">
+      <form method="dialog">
+        <button
+          value="close"
+          id="wait-close"
+          class="dialog-close"
+          type="submit"
+          formnovalidate
+          aria-label="닫기"
+        >
+          ×
+        </button>
+        <h2 id="wait-title">누구 답을 기다리나요?</h2>
+        <p id="wait-description"></p>
+        <div class="side-fields">
+          <div>
+            <label id="wait-target-label" for="wait-target">기다리는 사람</label>
+            <select id="wait-target"></select>
+          </div>
+          <div>
+            <label id="wait-due-label" for="wait-due">마감일</label>
+            <input id="wait-due" type="date" />
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button value="skip" id="wait-skip" type="submit" formnovalidate>
+            건너뛰기</button
+          ><button value="send" id="wait-send" type="submit">보내기</button>
+        </div>
+      </form>
+    </dialog>
     <dialog id="detail-dialog" aria-labelledby="detail-title">
       <form method="dialog">
         <button
@@ -72,7 +105,9 @@
           <!-- 2026-09-18 대표님 지시 2차: 닫기는 오른쪽 위 X로 옮기고, 수정
                왼쪽에 삭제를 둔다. 닫기가 form method="dialog"의 유일한 submit
                버튼이라 X가 그 역할을 이어받는다 — 엔터·ESC로 닫는 동작 유지. -->
-          <button value="delete" id="detail-delete" type="button" hidden>
+          <button value="wait" id="detail-wait" type="button" hidden>
+            요청 보내기</button
+          ><button value="delete" id="detail-delete" type="button" hidden>
             삭제</button
           ><button value="edit" id="detail-edit" type="button" hidden>
             수정

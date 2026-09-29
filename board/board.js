@@ -107,6 +107,22 @@
       deleteFailed: "삭제하지 못했습니다.",
       deleteLocked: "A2 대기 항목은 /wait에서 처리해 주세요.",
       editManaged: "A2 대기 항목은 /wait에서 고쳐 주세요.",
+      waitTitle: "누구 답을 기다리나요?",
+      detailWait: "요청 보내기",
+      waitDescription: (title) =>
+        `“${title}” 업무를 막힘으로 옮깁니다. 기다리는 사람을 고르면 /wait처럼 그 사람에게 [회신 완료]·[작업 완료] 단추가 담긴 DM이 갑니다.`,
+      waitTargetLabel: "기다리는 사람",
+      waitTargetPlaceholder: "사람 고르기",
+      waitDueLabel: "마감일",
+      waitSkip: "건너뛰기",
+      waitSend: "보내기",
+      waitTargetRequired: "기다리는 사람을 골라 주세요.",
+      waitSending: "요청 보내는 중…",
+      waitSent: (title, name) =>
+        `“${title}” 업무를 막힘으로 옮기고 ${name}님에게 요청을 보냈습니다.`,
+      waitFailed: "요청을 보내지 못했습니다.",
+      waitAlready: "같은 사람에게 같은 요청이 이미 있습니다.",
+      waitNoOwner: "담당자가 없는 카드입니다. 먼저 담당자를 정해 주세요.",
     },
     th: {
       title: "บอร์ดงานทีม",
@@ -206,6 +222,22 @@
       deleteFailed: "ลบไม่สำเร็จ",
       deleteLocked: "รายการรอของ A2 กรุณาจัดการผ่าน /wait",
       editManaged: "รายการรอของ A2 กรุณาแก้ไขผ่าน /wait",
+      waitTitle: "รอคำตอบจากใคร?",
+      detailWait: "ส่งคำขอ",
+      waitDescription: (title) =>
+        `จะย้ายงาน “${title}” ไปที่ติดขัด หากเลือกคนที่รอ ระบบจะส่ง DM พร้อมปุ่ม [ตอบแล้ว]·[เสร็จแล้ว] ให้คนนั้นเหมือน /wait`,
+      waitTargetLabel: "คนที่รอ",
+      waitTargetPlaceholder: "เลือกคน",
+      waitDueLabel: "กำหนดส่ง",
+      waitSkip: "ข้าม",
+      waitSend: "ส่ง",
+      waitTargetRequired: "กรุณาเลือกคนที่รอ",
+      waitSending: "กำลังส่งคำขอ…",
+      waitSent: (title, name) =>
+        `ย้ายงาน “${title}” ไปที่ติดขัดและส่งคำขอให้ ${name} แล้ว`,
+      waitFailed: "ส่งคำขอไม่สำเร็จ",
+      waitAlready: "มีคำขอเดียวกันถึงคนนี้อยู่แล้ว",
+      waitNoOwner: "การ์ดนี้ยังไม่มีผู้รับผิดชอบ กรุณากำหนดก่อน",
     },
   };
   let lang = localStorage.getItem("board-lang") === "th" ? "th" : "ko";
@@ -338,6 +370,20 @@
     $("detail-close").setAttribute("aria-label", t().detailClose);
     // A2가 미러링한 카드는 원본이 /wait에 있어 여기서 고치면 다음 동기화가
     // 덮어쓴다 — 서버도 거절하므로 버튼 자체를 숨긴다.
+    // 2026-09-29: 이미 막힘 칸에 있는 카드도 나중에 기다리는 상대를 정할 수 있게 한다.
+    const waitButton = $("detail-wait");
+    if (waitButton) {
+      const canWait =
+        !!state?.waitUrl && item.status === "blocked" && !managed(item);
+      waitButton.hidden = !canWait;
+      waitButton.textContent = t().detailWait;
+      waitButton.onclick = canWait
+        ? () => {
+            dialog.close();
+            requestWait(item);
+          }
+        : null;
+    }
     const editButton = $("detail-edit");
     if (editButton) {
       // 2026-09-18 대표님 보고: 취소 칸 카드를 진행 중으로 옮겨도 [수정]이 안 뜬다.
@@ -545,6 +591,22 @@
     );
     assignee.value = kept;
     syncDueDisplay();
+    $("wait-title").textContent = t().waitTitle;
+    $("wait-target-label").textContent = t().waitTargetLabel;
+    $("wait-due-label").textContent = t().waitDueLabel;
+    $("wait-skip").textContent = t().waitSkip;
+    $("wait-send").textContent = t().waitSend;
+    $("wait-close").setAttribute("aria-label", t().detailClose);
+    const waitTarget = $("wait-target");
+    const keptTarget = waitTarget.value;
+    waitTarget.replaceChildren(
+      new Option(t().waitTargetPlaceholder, ""),
+      ...Object.keys(names).map(
+        (id) =>
+          new Option((lang === "th" && namesTh[id]) || names[id] || id, id),
+      ),
+    );
+    waitTarget.value = keptTarget;
   }
   // 날짜 칸의 글자는 우리가 그린다(브라우저 UI 언어를 따라가지 않게).
   // 칸에 포커스가 가면 CSS가 이 글자를 감추고 브라우저 원래 입력칸이 드러난다.
@@ -697,6 +759,22 @@
     ++epoch;
     deferred = null;
     endDrag();
+    // 2026-09-29 박찬우 PM 요구: 막힘으로 옮길 때 기다리는 상대를 묻는다.
+    // 보내기 → /wait과 같은 요청(board/wait), 건너뛰기 → 지금처럼 칸만 옮긴다,
+    // ×·ESC → 옮기지 않는다. A2 카드는 이미 /wait 요청이라 묻지 않는다.
+    if (target === "blocked" && state?.waitUrl && !managed(item)) {
+      const choice = await askWaitTarget(item);
+      if (choice === "send") {
+        await sendWait(item);
+        return;
+      }
+      if (choice !== "skip") {
+        busy = false;
+        render();
+        load();
+        return;
+      }
+    }
     if (
       ["completed", "cancelled"].includes(target) &&
       !(await confirmFinish(
@@ -738,6 +816,74 @@
     } catch (error) {
       state = before;
       notice(t().reverted(error.message));
+    } finally {
+      busy = false;
+      render();
+      load();
+    }
+  }
+  async function requestWait(item) {
+    if (busy) return;
+    busy = true;
+    ++epoch;
+    deferred = null;
+    if ((await askWaitTarget(item, { allowSkip: false })) === "send")
+      await sendWait(item);
+    else {
+      busy = false;
+      render();
+      load();
+    }
+  }
+  function askWaitTarget(item, { allowSkip = true } = {}) {
+    $("wait-skip").hidden = !allowSkip;
+    $("wait-description").textContent = t().waitDescription(cardTitle(item));
+    $("wait-target").value = "";
+    $("wait-due").value = item.dueDate || "";
+    const dialog = $("wait-dialog");
+    dialog.returnValue = "";
+    dialog.showModal();
+    return new Promise((resolve) => {
+      const onClose = () => {
+        // 보내기인데 사람을 안 골랐으면 창을 다시 연다 — 닫히면 고른 칸이 사라진다.
+        if (dialog.returnValue === "send" && !$("wait-target").value) {
+          notice(t().waitTargetRequired);
+          dialog.returnValue = "";
+          dialog.showModal();
+          return;
+        }
+        dialog.removeEventListener("close", onClose);
+        resolve(dialog.returnValue);
+      };
+      dialog.addEventListener("close", onClose);
+    });
+  }
+  // busy는 move()가 이미 잡아 둔 상태로 들어온다.
+  async function sendWait(item) {
+    const targetSlackId = $("wait-target").value;
+    const dueDate = $("wait-due").value || null;
+    const name =
+      (lang === "th" && namesTh[targetSlackId]) ||
+      names[targetSlackId] ||
+      targetSlackId;
+    $("sync-status").textContent = t().waitSending;
+    notice("");
+    try {
+      const response = await fetch(state.waitUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(20000),
+        body: JSON.stringify({ itemId: item.id, targetSlackId, dueDate }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) {
+        if (result.error === "already_waiting") throw new Error(t().waitAlready);
+        if (result.error === "owner_required") throw new Error(t().waitNoOwner);
+        throw new Error(result.error || t().waitFailed);
+      }
+      notice(t().waitSent(cardTitle(item), name));
+    } catch (error) {
+      notice(`${t().waitFailed} ${error.message || ""}`.trim());
     } finally {
       busy = false;
       render();

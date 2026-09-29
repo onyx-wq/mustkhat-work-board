@@ -502,7 +502,8 @@ dialog input[type="date"] {
 }
 /* 2026-09-18: 카드 상세의 닫기를 오른쪽 위 X로. form이 세로 격자라
    그 흐름에서 빼내(absolute) 제목 줄 오른쪽 끝에 붙인다. */
-#detail-dialog form {
+#detail-dialog form,
+#wait-dialog form {
   position: relative;
 }
 .dialog-close {
