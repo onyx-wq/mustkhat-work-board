@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>대기 항목 — 처리 결과</title>
+<style>
+  body { font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif; background: #f7f7f8; margin: 0; display: flex; min-height: 100vh; align-items: center; justify-content: center; }
+  .card { background: #fff; border-radius: 16px; padding: 32px 36px; max-width: 420px; width: 90%; box-shadow: 0 2px 12px rgba(0,0,0,.08); text-align: center; }
+  h1 { font-size: 19px; margin: 0 0 10px; }
+  p { font-size: 15px; color: #555; margin: 0 0 6px; line-height: 1.6; }
+  .foot { margin-top: 12px; font-size: 13px; color: #999; }
+</style>
+</head>
+<body>
+<div class="card" id="result">
+  <h1>처리하는 중…</h1>
+  <p>잠시만 기다려 주세요.</p>
+</div>
+<script>
+// 2026-09-29: 슬랙 DM의 [회신 완료]·[작업 완료]·[등록 취소] 버튼이 여는 중계 화면.
+// 버튼이 Supabase 주소로 바로 가면, Supabase가 기본 도메인에서 HTML을 text/plain으로
+// 바꿔 내보내 한글이 깨진 소스 코드가 그대로 보였다. 이 화면이 같은 요청을 대신 보내고
+// 결과 문구만 꺼내 보여 준다(보드 버튼의 /board/action 과 같은 방식). 서명은 주소가
+// 아니라 item·by·action 값에 걸려 있어 경로를 바꿔도 검증은 그대로다.
+(function () {
+  'use strict';
+  var BACKEND_DONE = 'https://jhcapqpulonokzpuojmy.supabase.co/functions/v1/waiting-tracker/done';
+  function show(title, message) {
+    var card = document.getElementById('result');
+    card.innerHTML = '';
+    var h1 = document.createElement('h1'); h1.textContent = title;
+    var p = document.createElement('p'); p.textContent = message;
+    var foot = document.createElement('p'); foot.className = 'foot';
+    foot.textContent = '이 화면은 닫아도 됩니다 · MUST Khat';
+    card.appendChild(h1); card.appendChild(p); card.appendChild(foot);
+  }
+  var q = location.search;
+  if (!q || q.indexOf('sig=') < 0) {
+    show('요청이 올바르지 않아요', '슬랙 DM의 버튼을 다시 눌러 주세요.');
+    return;
+  }
+  fetch(BACKEND_DONE + q, { method: 'GET', headers: { 'Accept': 'text/html' } })
+    .then(function (res) { return res.text(); })   // text()는 항상 UTF-8로 읽는다 — 한글이 안 깨진다
+    .then(function (html) {
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var h1 = doc.querySelector('h1');
+      var p = doc.querySelector('.card p') || doc.querySelector('p');
+      show(h1 ? h1.textContent : '처리 결과를 확인하지 못했어요', p ? p.textContent : '');
+    })
+    .catch(function () {
+      show('연결에 실패했어요', '잠시 후 다시 눌러 주세요. 계속되면 관리자에게 알려 주세요.');
+    });
+})();
+</script>
+</body>
+</html>
