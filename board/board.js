@@ -459,7 +459,8 @@
       openDetail(item, column);
     });
     const meta = node("div", "card-meta");
-    if (showA2Tag && managed(item)) meta.append(node("span", "a2-tag", "A2"));
+    // 2026-09-29 박찬우 PM 지시: 카드의 "A2" 딱지를 뺀다. 팀원에게는 내부 과제 번호일 뿐이라
+    // 뜻이 안 통한다. 대기 항목 여부는 여전히 managed()로 판별해 수정·삭제 잠금에 쓴다.
     const name = owner(item);
     meta.append(
       node("span", "avatar", name.slice(0, 1)),
