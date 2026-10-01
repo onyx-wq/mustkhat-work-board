@@ -273,6 +273,14 @@
     U06V2FAGQCD: "오환",
     U0APY9W912P: "박찬우",
     U089T883KMF: "포키",
+    // 2026-10-01 박찬우 PM: 태국 직원도 업무 보드를 작성하고 본다 — 담당자 목록에 추가.
+    U0C303DAHRU: "요크",
+    U08RQ05KUDN: "정은",
+    U0A50DSBFDG: "똔어",
+    U098EH1NJ59: "비어",
+    U08FRN91XPD: "피치",
+    U0B7AP7QE69: "크림",
+    U0AET5F0YNA: "프레임",
   };
   // 사람 이름은 뜻을 옮기는 게 아니라 정해진 표기를 쓰는 것이라 AI 번역에 맡기지 않고
   // 여기 고정한다(2026-09-15). 모르는 사람은 한국어 표기를 그대로 보여준다.
@@ -281,6 +289,14 @@
     U06V2FAGQCD: "ฮวาน",
     U0APY9W912P: "ชานอู",
     U089T883KMF: "นริศรา",
+    // 태국어 철자를 추측하지 않고 슬랙 프로필의 영문 이름을 그대로 쓴다(2026-10-01).
+    U0C303DAHRU: "Pimkaew",
+    U08RQ05KUDN: "Athitaya",
+    U0A50DSBFDG: "Nawarat",
+    U098EH1NJ59: "Thassanee",
+    U08FRN91XPD: "Natchar",
+    U0B7AP7QE69: "Teemapohn",
+    U0AET5F0YNA: "Thanatporn",
   };
   const $ = (id) => document.getElementById(id);
   const params = new URLSearchParams(location.search);
