@@ -13,7 +13,7 @@
       loading: "보드를 불러오는 중…",
       refresh: "새로고침",
       footnote:
-        "9초마다 갱신 · A2 업무는 /wait에서 처리 · 카드 순서는 최근 변경순",
+        "9초마다 갱신 · 카드 순서는 최근 변경순",
       columns: {
         open: "시작 전",
         in_progress: "진행 중",
@@ -131,7 +131,7 @@
       loading: "กำลังโหลดบอร์ด…",
       refresh: "รีเฟรช",
       footnote:
-        "รีเฟรชทุก 9 วินาที · งาน A2 จัดการผ่าน /wait · เรียงตามการเปลี่ยนแปลงล่าสุด",
+        "รีเฟรชทุก 9 วินาที · เรียงตามการเปลี่ยนแปลงล่าสุด",
       columns: {
         open: "ยังไม่เริ่ม",
         in_progress: "กำลังทำ",
@@ -425,12 +425,13 @@
             }
           : null;
     }
-    // 못 고치는 이유는 버튼 툴팁만으로는 눈에 안 띄므로 본문 아래 한 줄로도 적는다.
+    // 2026-10-01 박찬우 PM 지시: 이 안내 한 줄을 화면에서 뺀다. 잠금 자체는 그대로다 —
+    // [수정 불가] 버튼과 그 툴팁(detailEditLockedWhy)이 남아 있어 이유는 여전히 볼 수 있다.
+    // 되살리려면 아래 hidden 을 !mirrored 로 되돌리고 textContent 를 다시 채운다.
     const lockNote = $("detail-lock-note");
     if (lockNote) {
-      const mirrored = managed(item);
-      lockNote.hidden = !mirrored;
-      lockNote.textContent = mirrored ? t().detailEditLockedWhy : "";
+      lockNote.hidden = true;
+      lockNote.textContent = "";
     }
     dialog.showModal();
   }
