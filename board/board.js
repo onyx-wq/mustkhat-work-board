@@ -337,13 +337,14 @@
     if (lang === "th") return namesTh[id] || names[id] || raw;
     return names[id] || raw;
   }
-  // 태국어 화면에서는 번역된 제목을 쓴다. 아직 번역이 안 됐거나 실패했으면 한국어
-  // 원문을 그대로 보여준다 — 번역이 멈춰도 보드는 계속 읽을 수 있어야 한다.
+  // 화면 언어에 맞는 번역을 쓴다(2026-10-07 쌍방향: 태국어로 쓴 카드는 한국어 화면에서
+  // 한국어 번역으로). 아직 번역이 안 됐거나 실패했으면 원문을 그대로 보여준다 — 번역이
+  // 멈춰도 보드는 계속 읽을 수 있어야 한다.
   function cardTitle(item) {
-    return lang === "th" && item.titleTh ? item.titleTh : item.title;
+    return (lang === "th" ? item.titleTh : item.titleKo) || item.title;
   }
   function cardDescription(item) {
-    return (lang === "th" && item.descriptionTh) || item.description || "";
+    return (lang === "th" ? item.descriptionTh : item.descriptionKo) || item.description || "";
   }
   // 2026-09-16: 이제 '업무 내용'을 따로 받아 저장하므로 그게 있으면 그걸 쓴다.
   // 그 전에 등록된 업무는 지시문 전체가 제목에 들어가 있어(카드 하나가 아홉 줄이었다)
