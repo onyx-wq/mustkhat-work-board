@@ -281,6 +281,8 @@
     U08FRN91XPD: "피치",
     U0B7AP7QE69: "크림",
     U0AET5F0YNA: "프레임",
+    U0C5UHHKW06: "제임스", // Tanapon Sirithammakhun (마케팅) — 2026-10-07 추가
+    U0C5HEVCPEW: "남", // Wannasorn Peukkwannak (콘텐츠) — 2026-10-07 추가
   };
   // 사람 이름은 뜻을 옮기는 게 아니라 정해진 표기를 쓰는 것이라 AI 번역에 맡기지 않고
   // 여기 고정한다(2026-09-15). 모르는 사람은 한국어 표기를 그대로 보여준다.
@@ -297,6 +299,8 @@
     U08FRN91XPD: "Natchar",
     U0B7AP7QE69: "Teemapohn",
     U0AET5F0YNA: "Thanatporn",
+    U0C5UHHKW06: "Tanapon",
+    U0C5HEVCPEW: "Wannasorn",
   };
   const $ = (id) => document.getElementById(id);
   const params = new URLSearchParams(location.search);
