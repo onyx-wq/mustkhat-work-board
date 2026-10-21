@@ -344,11 +344,22 @@
   // 화면 언어에 맞는 번역을 쓴다(2026-10-07 쌍방향: 태국어로 쓴 카드는 한국어 화면에서
   // 한국어 번역으로). 아직 번역이 안 됐거나 실패했으면 원문을 그대로 보여준다 — 번역이
   // 멈춰도 보드는 계속 읽을 수 있어야 한다.
+  // 슬랙 태그(<@U0…>)가 글에 섞여 들어오면 코드 대신 이름으로 보여준다(2026-10-21
+  // 박찬우 PM: 봇이 열 명을 태그한 문장을 그대로 제목으로 등록해 카드에 코드가 줄줄이
+  // 보였다). 이름표에 없는 사람은 슬랙이 붙여 준 표시 이름(<@ID|이름>)을, 그것도 없으면 코드를 둔다.
+  const MENTION = /<@([\w.-]+)(?:\|([^>]+))?>/gu;
+  function withNames(text) {
+    if (!text) return text;
+    return text.replace(MENTION, (_, id, label) => {
+      const name = (lang === "th" && namesTh[id]) || names[id] || label || id;
+      return `@${name}`;
+    });
+  }
   function cardTitle(item) {
-    return (lang === "th" ? item.titleTh : item.titleKo) || item.title;
+    return withNames((lang === "th" ? item.titleTh : item.titleKo) || item.title);
   }
   function cardDescription(item) {
-    return (lang === "th" ? item.descriptionTh : item.descriptionKo) || item.description || "";
+    return withNames((lang === "th" ? item.descriptionTh : item.descriptionKo) || item.description || "");
   }
   // 2026-09-16: 이제 '업무 내용'을 따로 받아 저장하므로 그게 있으면 그걸 쓴다.
   // 그 전에 등록된 업무는 지시문 전체가 제목에 들어가 있어(카드 하나가 아홉 줄이었다)
