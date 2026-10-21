@@ -39,6 +39,15 @@
       detailClose: "닫기",
       detailNoBody: "적어 둔 상세 내용이 없습니다.",
       dueUnset: "마감 미정",
+      groupReplies: (n, total) => `회신 ${n}/${total}`,
+      groupOthers: (name, n) => `${name} 외 ${n}명`,
+      groupRequestedBy: (name) => `요청 ${name}`,
+      groupRequester: "요청",
+      groupReplyLabel: "회신",
+      groupReplyTotal: (n, total) => `${n} / ${total}명`,
+      groupReplied: "✅ 회신",
+      groupWaiting: "⏳ 대기",
+      groupStatus: "막힘 (회신 대기)",
       descriptionReadOnly: "팀의 업무 흐름을 확인하세요. (보기 전용)",
       needLink: "슬랙에서 받은 업무 보드 링크를 열어 주세요.",
       needLinkStatus: "서명 링크 필요",
@@ -157,6 +166,15 @@
       detailClose: "ปิด",
       detailNoBody: "ยังไม่มีรายละเอียดเพิ่มเติม",
       dueUnset: "ไม่ระบุกำหนด",
+      groupReplies: (n, total) => `ตอบแล้ว ${n}/${total}`,
+      groupOthers: (name, n) => `${name} และอีก ${n} คน`,
+      groupRequestedBy: (name) => `ผู้ขอ ${name}`,
+      groupRequester: "ผู้ขอ",
+      groupReplyLabel: "ตอบกลับ",
+      groupReplyTotal: (n, total) => `${n} / ${total} คน`,
+      groupReplied: "✅ ตอบแล้ว",
+      groupWaiting: "⏳ รอ",
+      groupStatus: "ติดขัด (รอคำตอบ)",
       descriptionReadOnly: "ดูความคืบหน้างานของทีม (โหมดดูอย่างเดียว)",
       needLink: "กรุณาเปิดลิงก์บอร์ดงานที่ได้รับจาก Slack",
       needLinkStatus: "ต้องใช้ลิงก์ที่มีลายเซ็น",
@@ -335,11 +353,54 @@
     $("notice").textContent = message;
     $("notice").hidden = !message;
   }
-  function owner(item) {
-    const raw = item.ownerName || t().unowned;
+  function personName(raw) {
     const id = raw.replace(/^<@|>$/g, "");
     if (lang === "th") return namesTh[id] || names[id] || raw;
     return names[id] || raw;
+  }
+  function owner(item) {
+    return personName(item.ownerName || t().unowned);
+  }
+  // 묶음 회신(2026-10-21 박찬우 PM): 여러 사람에게 같은 것을 물은 대기는 서버에 사람마다
+  // 한 줄씩 있고 group 정보가 붙어 온다. 보드에는 카드 한 장(회신 3/10)으로 합쳐 보여 준다.
+  // 아직 회신 안 한 사람이 있으면 막힘 칸, 다 했으면 완료 칸. 회신한 사람이 위로 온다.
+  function collapseGroups(data) {
+    const groups = new Map();
+    const pick = (list) =>
+      list.filter((item) => {
+        if (!item.group) return true;
+        if (!groups.has(item.group.id)) groups.set(item.group.id, []);
+        groups.get(item.group.id).push(item);
+        return false;
+      });
+    const items = pick(data.items);
+    const completed = pick(data.completed);
+    for (const [id, list] of groups) {
+      const members = [
+        ...list.filter((m) => m.group.waitStatus !== "waiting"),
+        ...list.filter((m) => m.group.waitStatus === "waiting"),
+      ];
+      const waiting = members.some((m) => m.group.waitStatus === "waiting");
+      const card = {
+        ...list[0],
+        id: `group:${id}`,
+        isGroup: true,
+        members,
+        status: waiting ? "blocked" : "completed",
+        moves: {},
+        a2Actions: undefined,
+      };
+      (waiting ? items : completed).unshift(card);
+    }
+    return { ...data, items, completed };
+  }
+  function groupCounts(item) {
+    const total = item.members.length;
+    const replied = item.members.filter((m) => m.group.waitStatus !== "waiting").length;
+    return { total, replied };
+  }
+  function shortDate(date) {
+    return date ? date.slice(5).replace("-", "/") : "";
   }
   // 화면 언어에 맞는 번역을 쓴다(2026-10-07 쌍방향: 태국어로 쓴 카드는 한국어 화면에서
   // 한국어 번역으로). 아직 번역이 안 됐거나 실패했으면 원문을 그대로 보여준다 — 번역이
@@ -467,7 +528,76 @@
     }
     dialog.showModal();
   }
+  function openGroupDetail(item) {
+    const dialog = $("detail-dialog");
+    if (!dialog) return;
+    const { total, replied } = groupCounts(item);
+    $("detail-title").textContent = cardTitle(item);
+    const rows = [
+      [t().detailStatus, item.status === "completed" ? t().columns.completed : t().groupStatus],
+      [t().groupRequester, personName(item.group.requester)],
+      [t().groupReplyLabel, t().groupReplyTotal(replied, total)],
+    ];
+    $("detail-meta").replaceChildren(
+      ...rows.flatMap(([label, value]) => [node("dt", "", label), node("dd", "", value)]),
+    );
+    const list = node("div", "group-members");
+    for (const m of item.members) {
+      const done = m.group.waitStatus !== "waiting";
+      const row = node("div", done ? "member" : "member waiting");
+      row.append(
+        node("span", "member-name", personName(m.group.member || m.ownerName || "")),
+        node("span", "", done ? t().groupReplied : t().groupWaiting),
+        node("span", "", done && m.group.due ? t().due(shortDate(m.group.due)) : "—"),
+        node("span", "member-note", done ? withNames(m.group.note || "") : ""),
+      );
+      list.append(row);
+    }
+    const bodyEl = $("detail-body");
+    bodyEl.classList.remove("empty-body");
+    bodyEl.replaceChildren(list);
+    // 묶음은 봇과 슬랙 회신으로만 움직인다 — 보드에서 고치거나 지우는 단추는 두지 않는다.
+    for (const id of ["detail-wait", "detail-edit", "detail-delete"]) {
+      const button = $(id);
+      if (button) button.hidden = true;
+    }
+    $("detail-close").setAttribute("aria-label", t().detailClose);
+    const lockNote = $("detail-lock-note");
+    if (lockNote) lockNote.hidden = true;
+    dialog.showModal();
+  }
+  function buildGroupCard(item) {
+    const card = node("article", "card group-card");
+    card.dataset.id = item.id;
+    const head = cardTitle(item);
+    card.append(node("h3", "", head));
+    card.append(node("p", "card-desc", t().groupRequestedBy(personName(item.group.requester))));
+    const { total, replied } = groupCounts(item);
+    const bar = node("div", "group-progress");
+    bar.setAttribute("aria-hidden", "true");
+    const fill = node("span");
+    fill.style.width = `${Math.round((replied / total) * 100)}%`;
+    bar.append(fill);
+    const meta = node("div", "card-meta");
+    meta.append(
+      node("span", "avatar", String(total)),
+      node("span", "", t().groupOthers(personName(item.members[0].group.member || ""), total - 1)),
+      node("span", "due", t().groupReplies(replied, total)),
+    );
+    card.append(bar, meta);
+    card.tabIndex = 0;
+    card.setAttribute("aria-haspopup", "dialog");
+    card.setAttribute("aria-label", t().detailAria(head));
+    card.addEventListener("click", () => openGroupDetail(item));
+    card.addEventListener("keydown", (event) => {
+      if (event.target !== card || (event.key !== "Enter" && event.key !== " ")) return;
+      event.preventDefault();
+      openGroupDetail(item);
+    });
+    return card;
+  }
   function buildActiveCard(item, { showA2Tag = true, column = null } = {}) {
+    if (item.isGroup) return buildGroupCard(item);
     const card = node("article", "card");
     card.dataset.id = item.id;
     card.draggable =
@@ -731,9 +861,9 @@
       if (!Array.isArray(data.items) || !Array.isArray(data.completed))
         throw new Error(t().badResponse);
       if (started !== epoch) return;
-      if (held()) deferred = data;
+      if (held()) deferred = collapseGroups(data);
       else {
-        state = data;
+        state = collapseGroups(data);
         render();
       }
     } catch (error) {

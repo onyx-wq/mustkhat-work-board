@@ -667,3 +667,45 @@ dialog select {
 .form-columns > div {
   min-width: 0;
 }
+
+/* 묶음 회신 카드(2026-10-21 박찬우 PM): 회신 진행 막대와 상세 창의 사람별 줄 */
+.group-progress {
+  height: 6px;
+  margin: var(--space-3) 0 var(--space-2);
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.group-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--status-completed);
+}
+.group-members {
+  display: grid;
+  gap: var(--space-2);
+}
+.group-members .member {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, auto) auto auto minmax(0, 1fr);
+  gap: var(--space-2) var(--space-4);
+  align-items: baseline;
+  color: var(--text);
+}
+.group-members .member.waiting > span:not(.member-name) {
+  color: var(--muted);
+}
+.group-members .member-name {
+  font-weight: 600;
+}
+.group-members .member-note {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 520px) {
+  .group-members .member {
+    grid-template-columns: minmax(4rem, auto) auto minmax(0, 1fr);
+  }
+  .group-members .member-note {
+    grid-column: 1 / -1;
+  }
+}
