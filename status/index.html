@@ -84,6 +84,8 @@
         margin: 0 auto;
         padding: 40px 48px 48px;
         -webkit-font-smoothing: antialiased;
+        /* 2026-10-21 긴 글(띄어쓰기 없는 영문·URL·태국어)이 칸 밖으로 넘치거나 잘리지 않게 */
+        overflow-wrap: anywhere;
       }
       .head {
         display: flex;
@@ -92,6 +94,10 @@
         border-bottom: 3px solid var(--ink);
         padding-bottom: 18px;
         margin-bottom: 14px;
+        gap: 16px; /* 제목이 길어도 기준일 글과 붙지 않게 */
+      }
+      .head > * {
+        min-width: 0;
       }
       .head h1 {
         font-size: 30px;
@@ -106,6 +112,7 @@
       .legend {
         display: flex;
         gap: 18px;
+        flex-wrap: wrap; /* 범례 글이 길면 한 글자씩 쪼개지지 말고 다음 줄로 */
         margin-bottom: 26px;
         font-size: 13.5px;
         color: var(--muted);
@@ -198,7 +205,8 @@
       td.name {
         font-weight: 700;
         width: 250px;
-        white-space: nowrap;
+        /* 한 줄 고정(nowrap)이면 긴 항목 이름이 표를 밀어 오른쪽이 잘렸다 — 넘칠 때만 줄바꿈 */
+        white-space: normal;
       }
       td.name small {
         display: block;

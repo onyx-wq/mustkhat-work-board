@@ -7,7 +7,8 @@
 <title>팀 업무 보드 — 처리 결과</title>
 <style>
   body { font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif; background: #f7f7f8; margin: 0; display: flex; min-height: 100vh; align-items: center; justify-content: center; }
-  .card { background: #fff; border-radius: 16px; padding: 32px 36px; max-width: 420px; width: 90%; box-shadow: 0 2px 12px rgba(0,0,0,.08); text-align: center; }
+  .card { background: #fff; border-radius: 16px; padding: 32px 36px; max-width: 420px; width: 90%; box-shadow: 0 2px 12px rgba(0,0,0,.08); text-align: center; overflow-wrap: anywhere; }
+  /* 2026-10-21 서버가 돌려준 긴 글(URL·태국어·띄어쓰기 없는 영문)이 카드 밖으로 넘치지 않게 — overflow-wrap */
   h1 { font-size: 19px; margin: 0 0 10px; }
   p { font-size: 15px; color: #555; margin: 0 0 6px; line-height: 1.6; }
   a.back { display: inline-block; margin-top: 14px; font-size: 14px; font-weight: 600; color: #059669; text-decoration: none; }

@@ -598,3 +598,72 @@ dialog textarea:focus-visible,
 dialog select:focus-visible {
   outline-offset: -2px;
 }
+
+/* 2026-10-21 박찬우 PM 지시 "앞으로 이렇게 되는 것들도 안 나오게 확실하게": 긴 글
+   (긴 제목·띄어쓰기 없는 주소·긴 담당자 이름·태국어)이 들어와도 겹치거나 칸 밖으로
+   넘치거나 찌그러지지 않게 한 곳에 모아 막는다. 색·크기는 그대로다. */
+/* 상단 — 태국어나 좁은 화면에서 언어 단추가 "한/국/어"로 세로로 찌그러지고 "+ 새 업무"
+   ·"새로고침"이 두세 줄로 꺾였다. 단추 글자는 한 줄로 두고, 모자라면 줄을 바꿔 내린다. */
+#board-header,
+.header-controls {
+  flex-wrap: wrap;
+}
+#board-header > div:first-child,
+.sync {
+  min-width: 0;
+}
+.lang-toggle,
+#add-task,
+#refresh {
+  flex-shrink: 0;
+}
+.lang-toggle button,
+#add-task,
+#refresh {
+  white-space: nowrap;
+}
+#sync-status {
+  overflow-wrap: anywhere;
+}
+/* 보드 위 알림 줄 — 카드 제목(주소 등)이 그대로 들어가 페이지 가로 스크롤이 생겼다. */
+#notice {
+  overflow-wrap: anywhere;
+}
+/* 열 머리 — 칸 이름이 길어도 개수(숫자)·점과 겹치지 않고 줄바꿈한다. */
+.column-header h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.dot,
+.count {
+  flex-shrink: 0;
+}
+/* 카드 담당자·마감 줄 — 띄어쓰기 없는 긴 이름이 카드 오른쪽 밖으로 삐져나갔다. */
+.card-meta > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.card-meta > .avatar {
+  flex-shrink: 0;
+}
+/* 마감 배지는 "마감 2026-10-" / "30"처럼 날짜 중간에서 꺾이지 않게 한 줄로. */
+.card-meta > .due {
+  white-space: nowrap;
+}
+/* 창 아래 단추 줄 — 태국어처럼 단추 글자가 길어도 창 밖으로 밀려나지 않게 줄을 바꾼다. */
+.dialog-actions {
+  flex-wrap: wrap;
+}
+/* 상세 창 메타(상태·담당자·마감) — 이름표(dt)가 길면 값 칸을 밀어내지 않게. */
+#detail-meta dt {
+  overflow-wrap: anywhere;
+}
+/* 담당자·기다리는 사람 선택 상자 — 긴 이름 하나가 상자를 넓혀 창을 밀어내지 않게. */
+dialog select {
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+.side-fields > div,
+.form-columns > div {
+  min-width: 0;
+}
