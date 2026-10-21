@@ -525,6 +525,24 @@ dialog input[type="date"] {
 .dialog-close:hover {
   color: var(--text);
 }
+/* 닫기(×)는 창 오른쪽 위에 떠 있다. 제목이 길면 그 자리까지 이어져 ×를 덮었다
+   (2026-10-21 박찬우 PM 지적). ×가 있는 창은 제목 오른쪽에 × 만큼 자리를 비우고,
+   ×는 글자 위에 바탕색으로 올려 어떤 경우에도 가려지지 않게 한다. */
+.dialog-close {
+  z-index: 1;
+  background: var(--surface);
+  border-radius: var(--radius-small);
+}
+.dialog-close + h2,
+dialog:has(.dialog-close) h2 {
+  padding-right: calc(2rem + var(--space-2, 0.5rem));
+}
+/* 창 안의 긴 글(띄어쓰기 없는 주소·영문 포함)은 칸 밖으로 넘치지 않고 줄바꿈한다. */
+dialog h2,
+dialog p,
+dialog dd {
+  overflow-wrap: anywhere;
+}
 /* 삭제는 되돌릴 수 없으니 다른 버튼과 구분되게 둔다 — 다만 실수로 먼저
    눈에 띄지 않도록 채우지 않고 글자만 경고색으로. */
 #detail-delete {
