@@ -709,3 +709,154 @@ dialog select {
     grid-column: 1 / -1;
   }
 }
+
+/* 담당자별 보기(2026-10-21 박찬우 PM): 위쪽 사람 단추 줄과, 전체 보기의 사람별 줄(넓은 화면) */
+.person-filter {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  scrollbar-width: thin;
+}
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.chip[aria-pressed="true"] {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--surface);
+}
+.chip-count {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.chip[aria-pressed="true"] .chip-count {
+  color: inherit;
+  opacity: 0.75;
+}
+#board-columns.lanes {
+  grid-template-columns: 9.5rem repeat(4, minmax(200px, 1fr));
+  gap: 0;
+  background: var(--column);
+  border-radius: var(--radius-panel);
+  overflow: visible;
+}
+.lanes .lane-col {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-radius: 0;
+  border-bottom: 1px solid var(--line);
+}
+.lanes .lane-corner {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--column);
+  border-bottom: 1px solid var(--line);
+}
+[data-col="in_progress"] .dot { background: var(--status-progress); }
+[data-col="blocked"] .dot { background: var(--status-blocked); }
+[data-col="completed"] .dot { background: var(--status-completed); }
+.lane-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+button.lane-head {
+  cursor: pointer;
+}
+button.lane-head:hover .lane-name {
+  text-decoration: underline;
+}
+.lane-head .avatar {
+  background: var(--surface);
+  margin-bottom: var(--space-1);
+}
+.lane-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.lane-count {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.lane-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-top: 1px solid var(--line);
+  border-left: 1px dashed var(--line);
+  min-width: 0;
+  min-height: 3rem;
+}
+.lane-cell.drop-over {
+  background: hsl(215 75% 48% / 0.08);
+}
+/* 사람별 줄 안의 카드는 짧게 — 설명은 카드를 눌러 상세 창에서 본다 */
+.lanes .card .card-desc {
+  display: none;
+}
+.lanes .card h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.lanes .card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+.lanes .card h3 {
+  grid-column: 1 / -1;
+}
+/* 사람 이름은 줄 왼쪽에 이미 있으니 카드에서는 빼고 마감만 남긴다 */
+.lanes .card .card-meta > .avatar,
+.lanes .card .card-meta > .avatar + span {
+  display: none;
+}
+.lanes .card .card-meta {
+  margin: 0;
+}
+.lanes .card select {
+  width: auto;
+  max-width: 7.5rem;
+  margin: 0;
+  font-size: 0.75rem;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+.lanes .group-card .card-meta > .avatar,
+.lanes .group-card .card-meta > .avatar + span {
+  display: inline-grid;
+}
+.lanes .group-card .card-meta > .avatar + span {
+  display: inline;
+}
+.lanes .group-card .group-progress,
+.lanes .group-card .card-meta {
+  grid-column: 1 / -1;
+}

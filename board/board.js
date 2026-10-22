@@ -48,6 +48,12 @@
       groupReplied: "✅ 회신",
       groupWaiting: "⏳ 대기",
       groupStatus: "막힘 (회신 대기)",
+      filterAll: "전체",
+      filterLabel: "담당자별 보기",
+      unassignedLane: "담당 미정",
+      groupLane: "여러 명에게 묻는 중",
+      laneCounts: (active, blocked) => blocked ? `진행 ${active} · 막힘 ${blocked}` : `진행 ${active}`,
+      laneShowOnly: (name) => `${name}님 업무만 보기`,
       descriptionReadOnly: "팀의 업무 흐름을 확인하세요. (보기 전용)",
       needLink: "슬랙에서 받은 업무 보드 링크를 열어 주세요.",
       needLinkStatus: "서명 링크 필요",
@@ -175,6 +181,12 @@
       groupReplied: "✅ ตอบแล้ว",
       groupWaiting: "⏳ รอ",
       groupStatus: "ติดขัด (รอคำตอบ)",
+      filterAll: "ทั้งหมด",
+      filterLabel: "ดูตามผู้รับผิดชอบ",
+      unassignedLane: "ไม่ระบุผู้รับผิดชอบ",
+      groupLane: "ถามหลายคน",
+      laneCounts: (active, blocked) => blocked ? `ทำอยู่ ${active} · ติดขัด ${blocked}` : `ทำอยู่ ${active}`,
+      laneShowOnly: (name) => `ดูเฉพาะงานของ ${name}`,
       descriptionReadOnly: "ดูความคืบหน้างานของทีม (โหมดดูอย่างเดียว)",
       needLink: "กรุณาเปิดลิงก์บอร์ดงานที่ได้รับจาก Slack",
       needLinkStatus: "ต้องใช้ลิงก์ที่มีลายเซ็น",
@@ -261,6 +273,13 @@
     },
   };
   let lang = localStorage.getItem("board-lang") === "th" ? "th" : "ko";
+  // 담당자별 보기(2026-10-21 박찬우 PM): "all" 이면 전체, 아니면 그 사람 슬랙 ID 또는 "unassigned".
+  let personFilter = "all";
+  try {
+    personFilter = localStorage.getItem("board-person") || "all";
+  } catch {
+    // 저장소를 못 써도 전체 보기로 시작한다.
+  }
   const t = () => STRINGS[lang];
 
   // 2026-09-10 사용자 요구("이거랑 맞춰져야하는데, 안맞아"): 웹 보드를 슬랙 DM
@@ -774,14 +793,128 @@
       display.classList.add("placeholder");
     }
   }
+  // 카드가 누구 것인지. 묶음 카드는 묶인 사람 모두의 것이다.
+  const ownerKey = (raw) => (raw ? raw.replace(/^<@|>$/g, "") : "unassigned");
+  function belongsTo(item, person) {
+    if (item.isGroup) return item.members.some((m) => ownerKey(m.group.member || m.ownerName) === person);
+    return ownerKey(item.ownerName) === person;
+  }
+  const columnItems = (column) =>
+    ["completed", "cancelled"].includes(column)
+      ? state.completed.filter((item) => item.status === column)
+      : state.items.filter((item) => inColumn(item, column));
+  function setPerson(next) {
+    personFilter = next;
+    try {
+      localStorage.setItem("board-person", next);
+    } catch {
+      // 저장 안 돼도 이번 화면에서는 동작한다.
+    }
+    render();
+  }
+  // 위쪽 사람 단추 줄. 진행 중·막힘·시작 전(끝나지 않은 일) 개수를 붙이고 많은 순으로 놓는다.
+  function renderFilter() {
+    const bar = $("person-filter");
+    if (!bar || !state) return;
+    const counts = new Map();
+    for (const item of state.items) {
+      const people = item.isGroup
+        ? [...new Set(item.members.map((m) => ownerKey(m.group.member || m.ownerName)))]
+        : [ownerKey(item.ownerName)];
+      for (const person of people) counts.set(person, (counts.get(person) || 0) + 1);
+    }
+    if (personFilter !== "all" && !counts.has(personFilter)) counts.set(personFilter, 0);
+    const people = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const chip = (key, label, count) => {
+      const button = node("button", "chip");
+      button.type = "button";
+      button.setAttribute("aria-pressed", String(personFilter === key));
+      button.append(node("span", "", label));
+      if (count !== undefined) button.append(node("span", "chip-count", String(count)));
+      button.addEventListener("click", () => setPerson(key));
+      return button;
+    };
+    bar.setAttribute("aria-label", t().filterLabel);
+    bar.replaceChildren(
+      chip("all", t().filterAll, state.items.length),
+      ...people.map(([key, count]) =>
+        chip(key, key === "unassigned" ? t().unassignedLane : personName(`<@${key}>`), count),
+      ),
+    );
+  }
+  // 전체 보기(넓은 화면): 사람마다 한 줄, 칸은 그대로 — 진행 중이 한 줄로 길게 늘어지지 않게.
+  function renderLanes() {
+    const grid = document.createDocumentFragment();
+    grid.append(node("div", "lane-corner"));
+    for (const column of COLUMN_ORDER) {
+      const head = node("div", "column-header lane-col");
+      head.dataset.col = column;
+      head.append(
+        node("span", "dot"),
+        node("h2", "", t().columns[column]),
+        node("span", "count", String(columnItems(column).length)),
+      );
+      grid.append(head);
+    }
+    const lanes = new Map();
+    const lane = (key) => {
+      if (!lanes.has(key)) lanes.set(key, Object.fromEntries(COLUMN_ORDER.map((c) => [c, []])));
+      return lanes.get(key);
+    };
+    for (const column of COLUMN_ORDER)
+      for (const item of columnItems(column))
+        lane(item.isGroup ? "group" : ownerKey(item.ownerName))[column].push(item);
+    const activeCount = (cells) =>
+      COLUMN_ORDER.filter((c) => c !== "completed").reduce((n, c) => n + cells[c].length, 0);
+    const order = [...lanes.keys()].sort((a, b) => {
+      const rank = (k) => (k === "group" ? 0 : k === "unassigned" ? 2 : 1);
+      return rank(a) - rank(b) || activeCount(lanes.get(b)) - activeCount(lanes.get(a));
+    });
+    for (const key of order) {
+      const cells = lanes.get(key);
+      const name =
+        key === "group" ? t().groupLane : key === "unassigned" ? t().unassignedLane : personName(`<@${key}>`);
+      const head = node(key === "group" ? "div" : "button", "lane-head");
+      if (key !== "group") {
+        head.type = "button";
+        head.title = t().laneShowOnly(name);
+        head.addEventListener("click", () => setPerson(key));
+      }
+      head.append(
+        node("span", "avatar", key === "group" ? "+" : name.slice(0, 1)),
+        node("span", "lane-name", name),
+        node("span", "lane-count", t().laneCounts(cells.open.length + cells.in_progress.length, cells.blocked.length)),
+      );
+      grid.append(head);
+      for (const column of COLUMN_ORDER) {
+        const cell = node("div", "lane-cell");
+        cell.dataset.target = column;
+        for (const item of cells[column])
+          cell.append(
+            column === "completed" ? buildClosedCard(item, column) : buildActiveCard(item, { column }),
+          );
+        grid.append(cell);
+      }
+    }
+    const board = $("board-columns");
+    board.classList.add("lanes");
+    board.replaceChildren(grid);
+  }
+  const wideScreen = () => window.matchMedia("(min-width: 960px)").matches;
   function render() {
     renderChrome();
     if (!state) return;
+    renderFilter();
+    if (personFilter === "all" && wideScreen()) {
+      renderLanes();
+      finishRender();
+      return;
+    }
+    $("board-columns").classList.remove("lanes");
+    const show = (item) => personFilter === "all" || belongsTo(item, personFilter);
     const columns = document.createDocumentFragment();
     for (const column of COLUMN_ORDER) {
-      const items = ["completed", "cancelled"].includes(column)
-        ? state.completed.filter((item) => item.status === column)
-        : state.items.filter((item) => inColumn(item, column));
+      const items = columnItems(column).filter(show);
       const section = node("section", "column");
       section.id = `board-column-${column}`;
       const header = node("div", "column-header");
@@ -804,6 +937,9 @@
       columns.append(section);
     }
     $("board-columns").replaceChildren(columns);
+    finishRender();
+  }
+  function finishRender() {
     $("board-columns").setAttribute("aria-busy", String(busy));
     $("sync-status").textContent = t().syncedStatus(
       new Date(state.generatedAt).toLocaleString(
@@ -1076,6 +1212,9 @@
       load();
     }
   }
+  window.matchMedia("(min-width: 960px)").addEventListener("change", () => {
+    if (!held()) render();
+  });
   document.addEventListener("dragover", (event) => {
     const zone = event.target.closest("[data-target]");
     if (dragging && zone && allowed(dragging, zone.dataset.target)) {
