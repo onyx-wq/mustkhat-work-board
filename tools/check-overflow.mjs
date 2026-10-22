@@ -8,7 +8,7 @@
 // 하는 일
 //   1. board/index.html 을 읽어 board.js 대신 시험용 내용(아주 긴 한국어 제목·띄어쓰기 없는
 //      주소·태국어·긴 이름)을 채우는 스크립트를 넣고, board.css 를 그대로 붙여 시험 화면을 만든다.
-//   2. 맥의 Chrome 을 화면 없이(headless) 띄워 폭 380·768·1280 에서 보드·상세 창·대기 창·
+//   2. 맥의 Chrome 을 화면 없이(headless) 띄워 폭 380·768·960·1100·1280·1440 에서 보드·상세 창·대기 창·
 //      추가 창·확인 창을 하나씩 열어 본다.
 //   3. 각 화면에서 ① 버튼과 글자가 겹치는지 ② 칸 밖으로 넘치는지 ③ 창이 화면 밖으로 나가는지 본다.
 //   문제가 있으면 어디·어떤 폭인지 적고 종료 코드 1, 없으면 "이상 없음" 과 0.
@@ -30,7 +30,7 @@ const opt = (name, fallback) => {
 };
 const CSS_PATH = resolve(opt("--css", join(ROOT, "board/board.css")));
 const HTML_PATH = resolve(opt("--html", join(ROOT, "board/index.html")));
-const WIDTHS = opt("--widths", "380,768,1280").split(",").map(Number);
+const WIDTHS = opt("--widths", "380,768,960,1100,1280,1440").split(",").map(Number);
 const HEIGHT = Number(opt("--height", "800"));
 const KEEP = args.includes("--keep");
 const CHROME =
@@ -107,6 +107,69 @@ function inPage() {
     const notice = $("notice");
     notice.hidden = !showNotice;
     notice.textContent = "「" + LONG.url + "」 업무를 삭제했습니다.";
+  }
+
+  // 2026-10-22: 넓은 화면 전체 보기 = 사람별 줄(board.js renderLanes). 줄 안 카드는 마감과 상태 이동이
+  // 한 줄이라 좁아지면 마감 글자가 잘렸다(박찬우 PM 「저번에도 이러더니」). 한국어·태국어 둘 다 본다.
+  function fillLanes(lang) {
+    fillBoard(false);
+    const th = lang === "th";
+    const due = th ? ["ครบกำหนด 2026-10-21", "ไม่ระบุกำหนด"] : ["마감 2026-10-21", "마감 미정"];
+    const bar = $("person-filter");
+    if (bar)
+      bar.replaceChildren(
+        ...[th ? "ทั้งหมด" : "전체", "Thanatporn", "Tanapon", "Athitaya", "Thassanee", "Wannasorn", "Pimkaew", "Teemapohn", "Natchar", NAME].map((n, i) => {
+          const b = node("button", "chip");
+          b.type = "button";
+          b.append(node("span", "", n), node("span", "chip-count", String(14 - i)));
+          return b;
+        }),
+      );
+    const cols = ["open", "in_progress", "blocked", "completed"];
+    const labels = th ? ["ยังไม่เริ่ม", "กำลังทำ", "ติดขัด", "เสร็จแล้ว"] : ["시작 전", "진행 중", "막힘", "완료"];
+    const frag = document.createDocumentFragment();
+    frag.append(node("div", "lane-corner"));
+    cols.forEach((c, i) => {
+      const h = node("div", "column-header lane-col");
+      h.dataset.col = c;
+      h.append(node("span", "dot"), node("h2", "", labels[i]), node("span", "count", "13"));
+      frag.append(h);
+    });
+    for (const person of [th ? "ถามหลายคน" : "여러 명에게 묻는 중", NAME, "Thanatporn"]) {
+      const head = node("button", "lane-head");
+      head.type = "button";
+      head.append(node("span", "avatar", person.slice(0, 1)), node("span", "lane-name", person), node("span", "lane-count", th ? "ทำอยู่ 6 · ติดขัด 1" : "진행 6 · 막힘 1"));
+      frag.append(head);
+      cols.forEach((c, i) => {
+        const cell = node("div", "lane-cell");
+        cell.dataset.target = c;
+        if (i === 2) {
+          const g = node("article", "card group-card");
+          g.append(node("h3", "", LONG.th), node("p", "card-desc", "요청 전영찬"));
+          const bar2 = node("div", "group-progress");
+          const fill = node("span");
+          fill.style.width = "40%";
+          bar2.append(fill);
+          const meta = node("div", "card-meta");
+          meta.append(node("span", "avatar", "10"), node("span", "", NAME + (th ? " และอีก 9 คน" : " 외 9명")), node("span", "due", th ? "ตอบแล้ว 4/10" : "회신 4/10"));
+          g.append(bar2, meta);
+          cell.append(g);
+        } else
+          for (const [t, d] of [[LONG.ko, due[0]], [LONG.th, due[1]], [LONG.word, due[0]]]) {
+            const card = node("article", "card" + (c === "completed" ? " closed" : ""));
+            card.append(node("h3", "", t), node("p", "card-desc", BODY));
+            const meta = node("div", "card-meta");
+            meta.append(node("span", "avatar", NAME.slice(0, 1)), node("span", "", NAME), node("span", "due" + (d === due[1] ? " unset" : " urgent"), d));
+            const select = node("select");
+            select.append(new Option(th ? "ย้ายสถานะ…" : "상태 이동…", ""));
+            card.append(meta, select);
+            cell.append(card);
+          }
+        frag.append(cell);
+      });
+    }
+    $("board-columns").classList.add("lanes");
+    $("board-columns").replaceChildren(frag);
   }
 
   function fillDetail(title) {
@@ -268,6 +331,13 @@ function inPage() {
         add("버튼이 가려짐", describe(b.el), `가운데를 누르면 ${describe(top)} 이(가) 잡힘`);
     }
 
+    // ③ 단추·선택 칸이 비정상적으로 커짐(2026-10-22: 줄 보기에서 상태 이동 칸이 세로로 100px 넘게 늘어났다)
+    for (const el of scope.querySelectorAll("select, button:not(.lane-head)")) {
+      if (!visible(el)) continue;
+      const h = el.getBoundingClientRect().height;
+      if (h > 60) add("단추·선택 칸이 너무 큼", describe(el), `높이 ${Math.round(h)}px`);
+    }
+
     // ② 칸 밖으로 넘침 — 스크롤로 보라고 만든 상자(overflow auto/scroll)와 입력칸은 뺀다.
     const over = [];
     for (const el of [scope, ...scope.querySelectorAll("*")]) {
@@ -310,6 +380,13 @@ function inPage() {
   const fills = { ko: LONG.ko, url: LONG.url, th: LONG.th, word: LONG.word };
   window.__runCase = (name, viewport) => {
     for (const d of document.querySelectorAll("dialog[open]")) d.close();
+    $("board-columns").classList.remove("lanes");
+    if (name.startsWith("lanes:")) {
+      // 사람별 줄은 넓은 화면(960px 이상)에서만 쓴다 — 좁은 화면은 칸 보기(위 "board")가 맡는다.
+      if (viewport.width < 960) return [];
+      fillLanes(name.slice(6));
+      return check($("work-board"), viewport);
+    }
     fillBoard(name === "board");
     if (name === "board") return check($("work-board"), viewport);
     const [kind, variant] = name.split(":");
@@ -329,7 +406,7 @@ function inPage() {
     dlg.querySelectorAll("*").forEach((e) => (e.scrollTop = 0));
     return check(dlg, viewport);
   };
-  window.__cases = ["board"].concat(
+  window.__cases = ["board", "lanes:ko", "lanes:th"].concat(
     ...["detail", "wait", "add", "finish"].map((k) => Object.keys(fills).map((v) => k + ":" + v)),
   );
 }
