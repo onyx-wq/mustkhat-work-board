@@ -875,3 +875,62 @@ button.lane-head:hover .lane-name {
 .lanes .card .card-meta > .due {
   white-space: nowrap;
 }
+
+/* 완료 칸 머리의 「지난 완료」 단추와 그 창(2026-10-29 박찬우 PM) — 위쪽 사람 단추와 같은 둥근 테두리 */
+.archive-button {
+  flex: none;
+  margin: -4px 0 -4px auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.archive-button:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+#detail-body.archive-body {
+  max-height: 60vh;
+  white-space: normal;
+}
+.archive {
+  display: flex;
+  flex-direction: column;
+}
+.archive-month {
+  margin: var(--space-4) 0 var(--space-1);
+  font-size: 14px;
+  color: var(--status-completed);
+}
+.archive-month:first-child {
+  margin-top: 0;
+}
+.archive-row {
+  display: grid;
+  grid-template-columns: 3.2em minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.archive-date,
+.archive-owner {
+  color: var(--muted);
+}
+.archive-title,
+.archive-owner {
+  overflow-wrap: anywhere;
+}
+.archive-owner {
+  max-width: 8em;
+  text-align: right;
+}

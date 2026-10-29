@@ -83,6 +83,7 @@ function inPage() {
       section.dataset.target = key;
       const header = node("div", "column-header");
       header.append(node("span", "dot"), node("h2", "", label), node("span", "count", String(titles.length)));
+      if (key === "completed") header.append(archiveButton("지난 완료"));
       const cards = node("div", "cards");
       for (const title of titles) {
         const card = node("article", "card" + (key === "completed" ? " closed" : ""));
@@ -109,6 +110,33 @@ function inPage() {
     notice.textContent = "「" + LONG.url + "」 업무를 삭제했습니다.";
   }
 
+  // 2026-10-29: 완료 칸 머리의 「지난 완료」 단추(board.js archiveButton). 태국어가 더 길다.
+  function archiveButton(label) {
+    const b = node("button", "archive-button");
+    b.type = "button";
+    b.innerHTML = '<svg viewBox="0 0 16 16" width="13" height="13"></svg>';
+    b.append(node("span", "", label));
+    return b;
+  }
+  // 「지난 완료」 창(board.js openArchive): 달 제목 + 날짜·제목·담당자 줄.
+  function fillArchive(title) {
+    $("detail-title").textContent = "지난 완료";
+    $("detail-meta").replaceChildren(node("dt", "", "기준"), node("dd", "", "지난달 이전에 끝난 일"));
+    const list = node("div", "archive");
+    for (const month of ["2026년 9월 · 12건", "กันยายน 2569 · 12 รายการ"]) {
+      list.append(node("h3", "archive-month", month));
+      for (const t of [title, LONG.word, LONG.th, "짧은 일"]) {
+        const row = node("div", "archive-row");
+        row.append(node("span", "archive-date", "09/28"), node("span", "archive-title", t), node("span", "archive-owner", NAME));
+        list.append(row);
+      }
+    }
+    const body = $("detail-body");
+    body.classList.remove("empty-body");
+    body.classList.add("archive-body");
+    body.replaceChildren(list);
+  }
+
   // 2026-10-22: 넓은 화면 전체 보기 = 사람별 줄(board.js renderLanes). 줄 안 카드는 마감과 상태 이동이
   // 한 줄이라 좁아지면 마감 글자가 잘렸다(박찬우 PM 「저번에도 이러더니」). 한국어·태국어 둘 다 본다.
   function fillLanes(lang) {
@@ -133,6 +161,7 @@ function inPage() {
       const h = node("div", "column-header lane-col");
       h.dataset.col = c;
       h.append(node("span", "dot"), node("h2", "", labels[i]), node("span", "count", "13"));
+      if (c === "completed") h.append(archiveButton(th ? "ย้อนหลัง" : "지난 완료"));
       frag.append(h);
     });
     for (const person of [th ? "ถามหลายคน" : "여러 명에게 묻는 중", NAME, "Thanatporn"]) {
@@ -396,8 +425,10 @@ function inPage() {
       wait: ["wait-dialog", fillWait],
       add: ["add-dialog", fillAdd],
       finish: ["finish-dialog", fillFinish],
+      archive: ["detail-dialog", fillArchive],
     };
     const [id, fill] = map[kind];
+    $("detail-body").classList.remove("archive-body");
     const dlg = $(id);
     if (!dlg) return [{ kind: "시험 준비 실패", where: id, detail: "index.html 에서 창을 찾지 못함" }];
     fill(title);
@@ -407,7 +438,7 @@ function inPage() {
     return check(dlg, viewport);
   };
   window.__cases = ["board", "lanes:ko", "lanes:th"].concat(
-    ...["detail", "wait", "add", "finish"].map((k) => Object.keys(fills).map((v) => k + ":" + v)),
+    ...["detail", "wait", "add", "finish", "archive"].map((k) => Object.keys(fills).map((v) => k + ":" + v)),
   );
 }
 

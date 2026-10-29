@@ -52,6 +52,13 @@
       filterLabel: "담당자별 보기",
       unassignedLane: "담당 미정",
       groupLane: "여러 명에게 묻는 중",
+      archiveButton: "지난 완료",
+      archiveHint: (n) => `지난달 이전에 끝난 일 ${n}건`,
+      archiveTitle: "지난 완료",
+      archiveBasis: "기준",
+      archiveBasisValue: "지난달 이전에 끝난 일",
+      archiveMonth: (y, m, n) => `${y}년 ${m}월 · ${n}건`,
+      archiveMany: "여러 명",
       laneCounts: (active, blocked) => blocked ? `진행 ${active} · 막힘 ${blocked}` : `진행 ${active}`,
       laneShowOnly: (name) => `${name}님 업무만 보기`,
       descriptionReadOnly: "팀의 업무 흐름을 확인하세요. (보기 전용)",
@@ -185,6 +192,14 @@
       filterLabel: "ดูตามผู้รับผิดชอบ",
       unassignedLane: "ไม่ระบุผู้รับผิดชอบ",
       groupLane: "ถามหลายคน",
+      archiveButton: "ย้อนหลัง",
+      archiveHint: (n) => `งานที่เสร็จก่อนเดือนนี้ ${n} รายการ`,
+      archiveTitle: "งานที่เสร็จก่อนหน้า",
+      archiveBasis: "เกณฑ์",
+      archiveBasisValue: "งานที่เสร็จก่อนเดือนนี้",
+      archiveMonth: (y, m, n) =>
+        `${new Date(y, m - 1, 1).toLocaleDateString("th-TH", { month: "long", year: "numeric" })} · ${n} รายการ`,
+      archiveMany: "หลายคน",
       laneCounts: (active, blocked) => blocked ? `ทำอยู่ ${active} · ติดขัด ${blocked}` : `ทำอยู่ ${active}`,
       laneShowOnly: (name) => `ดูเฉพาะงานของ ${name}`,
       descriptionReadOnly: "ดูความคืบหน้างานของทีม (โหมดดูอย่างเดียว)",
@@ -479,6 +494,7 @@
     const bodyEl = $("detail-body");
     bodyEl.textContent = body || t().detailNoBody;
     bodyEl.classList.toggle("empty-body", !body);
+    bodyEl.classList.remove("archive-body");
     // 닫기는 이제 오른쪽 위 × 이므로 글자를 덮어쓰면 안 된다 — 읽어 주는
     // 이름만 화면 언어에 맞춘다.
     $("detail-close").setAttribute("aria-label", t().detailClose);
@@ -573,7 +589,7 @@
       list.append(row);
     }
     const bodyEl = $("detail-body");
-    bodyEl.classList.remove("empty-body");
+    bodyEl.classList.remove("empty-body", "archive-body");
     bodyEl.replaceChildren(list);
     // 묶음은 봇과 슬랙 회신으로만 움직인다 — 보드에서 고치거나 지우는 단추는 두지 않는다.
     for (const id of ["detail-wait", "detail-edit", "detail-delete"]) {
@@ -799,10 +815,77 @@
     if (item.isGroup) return item.members.some((m) => ownerKey(m.group.member || m.ownerName) === person);
     return ownerKey(item.ownerName) === person;
   }
+  // 완료 칸은 이번 달(방콕 시간)에 끝난 일만 보인다. 지난달 이전은 칸 머리의 「지난 완료」
+  // 단추로 여는 창에서 달별로 본다(2026-10-29 박찬우 PM). 끝난 날짜는 서버가 completedAt 으로 준다.
+  const doneAt = (item) =>
+    item.completedAt || item.members?.find((m) => m.completedAt)?.completedAt || state.generatedAt;
+  const bkkMonth = (iso) => new Date(Date.parse(iso) + 7 * 3600e3).toISOString().slice(0, 7);
+  const thisMonth = (item) => bkkMonth(doneAt(item)) === bkkMonth(state.generatedAt);
   const columnItems = (column) =>
     ["completed", "cancelled"].includes(column)
-      ? state.completed.filter((item) => item.status === column)
+      ? state.completed.filter(
+          (item) => item.status === column && (column !== "completed" || thisMonth(item)),
+        )
       : state.items.filter((item) => inColumn(item, column));
+  function archiveButton() {
+    const older = state.completed.filter(
+      (item) =>
+        item.status === "completed" &&
+        !thisMonth(item) &&
+        (personFilter === "all" || belongsTo(item, personFilter)),
+    );
+    if (!older.length) return null;
+    const button = node("button", "archive-button");
+    button.type = "button";
+    button.title = t().archiveHint(older.length);
+    button.innerHTML =
+      '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M8 3.5a4.5 4.5 0 1 1-4.2 2.9M2.5 3.5v3h3M8 5.8V8l1.6 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    button.append(node("span", "", t().archiveButton));
+    button.addEventListener("click", () => openArchive(older));
+    return button;
+  }
+  function openArchive(older) {
+    const dialog = $("detail-dialog");
+    if (!dialog) return;
+    $("detail-title").textContent = t().archiveTitle;
+    $("detail-meta").replaceChildren(
+      node("dt", "", t().archiveBasis),
+      node("dd", "", t().archiveBasisValue),
+    );
+    const byMonth = new Map();
+    for (const item of [...older].sort((a, b) => (doneAt(a) < doneAt(b) ? 1 : -1))) {
+      const key = bkkMonth(doneAt(item));
+      if (!byMonth.has(key)) byMonth.set(key, []);
+      byMonth.get(key).push(item);
+    }
+    const list = node("div", "archive");
+    for (const [key, items] of byMonth) {
+      const [y, m] = key.split("-").map(Number);
+      list.append(node("h3", "archive-month", t().archiveMonth(y, m, items.length)));
+      for (const item of items) {
+        const day = new Date(Date.parse(doneAt(item)) + 7 * 3600e3).toISOString().slice(5, 10);
+        const row = node("div", "archive-row");
+        row.append(
+          node("span", "archive-date", day.replace("-", "/")),
+          node("span", "archive-title", cardTitle(item)),
+          node("span", "archive-owner", item.isGroup ? t().archiveMany : owner(item)),
+        );
+        list.append(row);
+      }
+    }
+    const bodyEl = $("detail-body");
+    bodyEl.classList.remove("empty-body");
+    bodyEl.classList.add("archive-body");
+    bodyEl.replaceChildren(list);
+    for (const id of ["detail-wait", "detail-edit", "detail-delete"]) {
+      const button = $(id);
+      if (button) button.hidden = true;
+    }
+    $("detail-close").setAttribute("aria-label", t().detailClose);
+    const lockNote = $("detail-lock-note");
+    if (lockNote) lockNote.hidden = true;
+    dialog.showModal();
+  }
   function setPerson(next) {
     personFilter = next;
     try {
@@ -854,6 +937,10 @@
         node("h2", "", t().columns[column]),
         node("span", "count", String(columnItems(column).length)),
       );
+      if (column === "completed") {
+        const archive = archiveButton();
+        if (archive) head.append(archive);
+      }
       grid.append(head);
     }
     const lanes = new Map();
@@ -923,6 +1010,10 @@
         node("h2", "", t().columns[column]),
         node("span", "count", String(items.length)),
       );
+      if (column === "completed") {
+        const archive = archiveButton();
+        if (archive) header.append(archive);
+      }
       const cards = node("div", "cards");
       // 완료 칸의 카드도 buildClosedCard를 통해 다시 활성 칸으로 옮길 수 있다.
       section.dataset.target = column;
@@ -1076,8 +1167,9 @@
     state.items = state.items.filter((card) => card.id !== item.id);
     state.completed = state.completed.filter((card) => card.id !== item.id);
     const moved = { ...item, status: target, moves: {} };
+    if (target === "completed") moved.completedAt = new Date().toISOString();
     if (["completed", "cancelled"].includes(target))
-      state.completed = [moved, ...state.completed].slice(0, 12);
+      state.completed = [moved, ...state.completed];
     else state.items.unshift(moved);
     render();
     $("sync-status").textContent = t().savingStatus;
